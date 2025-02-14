@@ -20,20 +20,24 @@ int main()
     inicializacao_gpio();                                         //|
     inicializacao_maquina_pio(PINO_MATRIZ_LED);                   //|
     adc_init();                                                   //|
-    config_pwm(LED_B,200,50);                                                 //|
+    config_pwm(LED_G);                                                 //|
     //--------------------------------------------------------------+
 
 
-    desenhar(matriz_3);
     limpar_o_buffer();
     escrever_no_buffer();
     while (true)
     {
         level = level + step;
         pwm_set_gpio_level(LED_G,level);
+        printf("%d\n", level);
+        if(level >= WRAP){
+            level= level - step;
+        }
+        if(level<=step ){
+            level = level + step;  
+        }
         sleep_ms(200);
-        printf("%c\n",level);
-        
         
     }
 }
