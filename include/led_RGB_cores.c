@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "cores.h"
-
 
 #define LED_R 13
 #define LED_B 12
@@ -9,10 +7,7 @@
 
 #define TIME 300
 
-
-
 // Funções para controle de cores
-
 
 // Função para apagar todos os leds
 void apagado(int tempo)
@@ -102,5 +97,3 @@ void verde(int tempo)
     sleep_ms(tempo);
   }
 }
-
-
