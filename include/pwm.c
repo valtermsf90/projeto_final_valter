@@ -1,6 +1,6 @@
 #include "hardware/pwm.h"
 
-#define WRAP 4000
+#define WRAP 2000
 const float DIVISOR_PWN = 1000;
 
 uint pino;
