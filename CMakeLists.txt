@@ -40,6 +40,9 @@ add_executable(projeto_final_valter projeto_final_valter.c )
 pico_set_program_name(projeto_final_valter "projeto_final_valter")
 pico_set_program_version(projeto_final_valter "0.1")
 
+# Generate PIO header
+pico_generate_pio_header(projeto_final_valter ${CMAKE_CURRENT_LIST_DIR}/ws2818b.pio)
+
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(projeto_final_valter 1)
 pico_enable_stdio_usb(projeto_final_valter 1)
@@ -49,7 +52,8 @@ target_link_libraries(projeto_final_valter
         pico_stdlib
         hardware_adc
         hardware_pwm
-        hardware_pio)
+        hardware_pio
+        hardware_clocks)
 
 # Add the standard include files to the build
 target_include_directories(projeto_final_valter PRIVATE

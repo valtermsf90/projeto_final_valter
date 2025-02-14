@@ -1,7 +1,7 @@
 #ifndef CORES_H_
 #define CORES_H_
 
-void apagado(int tempo);
+
 void ciano(int tempo);
 void branco(int tempo);
 void rosa(int tempo);

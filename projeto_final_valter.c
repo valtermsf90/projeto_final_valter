@@ -3,28 +3,26 @@
 #include "hardware/adc.h"
 #include "hardware/pwm.h"   
 #include "hardware/pio.h"
+#include "hardware/clocks.h"
 
-#include "include/frames.h"
-#include "include/cores.h"
-#include "include/funcoes.h"
+#include "include/frames.c"
+#include "include/cores.c"
+#include "include/funcoes.c"
 
 //PROTOTIPOS
-void apagado(int tempo);
-void ciano(int tempo);
-void branco(int tempo);
-void rosa(int tempo);
-void amarelo(int tempo);
-void vermelho(int tempo);
-void azul(int tempo);
-void verde(int tempo);
+
 
 
 int main()
 {
     stdio_init_all();
-
+   
+    inicializacao_gpio();
+    inicializacao_maquina_pio(PINO_MATRIZ_LED);
+    desenhar(matriz_0);
+    escrever_no_buffer();
     while (true) {
         azul(200);
-        apagado();
+        apagado(100);
     }
 }
