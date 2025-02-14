@@ -35,7 +35,9 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(projeto_final_valter projeto_final_valter.c )
+add_executable(projeto_final_valter projeto_final_valter.c include/ssd1306.c )
+
+
 
 pico_set_program_name(projeto_final_valter "projeto_final_valter")
 pico_set_program_version(projeto_final_valter "0.1")
@@ -53,7 +55,10 @@ target_link_libraries(projeto_final_valter
         hardware_adc
         hardware_pwm
         hardware_pio
-        hardware_clocks)
+        hardware_clocks
+        hardware_timer
+        hardware_i2c
+)   
 
 # Add the standard include files to the build
 target_include_directories(projeto_final_valter PRIVATE
@@ -62,6 +67,8 @@ target_include_directories(projeto_final_valter PRIVATE
 
 # Add any user requested libraries
 target_link_libraries(projeto_final_valter 
+hardware_i2c
+hardware_timer
         
         )
 
