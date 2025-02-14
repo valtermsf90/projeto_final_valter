@@ -20,7 +20,7 @@ void config_display();
 
 // VARIAVEIS
 bool flag = true;
-
+bool cor = true;
 #define I2C_PORT i2c1
 #define I2C_SDA 14
 #define I2C_SCL 15
@@ -30,6 +30,8 @@ bool flag = true;
 #define HEIGHT 64
 
 ssd1306_t ssd;
+char strx[5];
+char stry[5];
 
 void config_display()
 {
@@ -57,39 +59,44 @@ int main()
     inicializacao_gpio();                       //|
     inicializacao_maquina_pio(PINO_MATRIZ_LED); //|
     adc_init();                                 //|
-    config_pwm(LED_G);                          //|
-    config_pwm(LED_R);                          //|
+                          //|
+                         //|
     config_display();                           //|
     //--------------------------------------------+
-
+    int PIN = LED_G;
     limpar_o_buffer();
     escrever_no_buffer();
     while (true)
     {
         adc_config();
-        ssd1306_draw_string(&ssd, "CEPEDI   TIC37",10, 0);   // Desenha uma string
-        ssd1306_draw_string(&ssd, "EMBARCATECH", 20, 16);    // Desenha uma string
-        ssd1306_draw_string(&ssd, "ADC   JOYSTICK", 10, 24); // Desenha uma string
-        ssd1306_draw_string(&ssd, "X    Y    PB", 20, 41);   // Desenha uma string
+        sprintf(strx, "%d", eixo_x_valor); // Converte o inteiro em string
+        sprintf(stry, "%d", eixo_y_valor);
+        ssd1306_draw_string(&ssd, "CEPEDI   TIC37", 10, 0); // Desenha uma string
+        ssd1306_draw_string(&ssd, "Valter", 20, 16);        // Desenha uma string
+        ssd1306_draw_string(&ssd, "Machado", 10, 28);       // Desenha uma string
+        ssd1306_draw_string(&ssd, "X    Y    PB", 20, 41);
+        ssd1306_line(&ssd, 44, 37, 44, 60, cor); // Desenha uma linha vertical
+        ssd1306_draw_string(&ssd, strx, 8, 52); // Desenha uma string
+        ssd1306_line(&ssd, 84, 37, 84, 60, cor);
+        ssd1306_draw_string(&ssd, stry, 49, 52); // Desenha uma string
         ssd1306_send_data(&ssd); // Atualiza o display
-
-        pwm_set_gpio_level(LED_G, eixo_x_valor);
-        pwm_set_gpio_level(LED_R, eixo_y_valor);
+        
+        config_pwm(PIN);   
+        if(eixo_x_valor < 1500){
+            PIN = LED_B;
+        }
+        if(eixo_x_valor >=1500){
+            PIN = LED_G;
+        }
+        if(eixo_x_valor > 3000){
+            PIN = LED_R;
+        }
+        pwm_set_gpio_level(PIN, eixo_y_valor);
+        
 
         printf("eixo x:%d\n", eixo_x_valor);
         printf("eixo y:%d\n", eixo_y_valor);
 
-        /*if(flag == true){
-            level = level + step;
-            if(level >= WRAP){
-                flag = false;
-            }
-        }else{
-            level= level - step;
-            if(level<= step){
-                flag = true;
-            }
-        }*/
-        sleep_ms(500);
+        sleep_ms(100);
     }
 }
