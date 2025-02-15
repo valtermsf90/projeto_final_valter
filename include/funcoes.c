@@ -33,6 +33,9 @@ LED_da_matriz leds[CONTADOR_LED];
 
 PIO maquina_pio;
 uint variavel_maquina_de_estado;
+static volatile uint32_t last_time = 0;
+
+
 
 // Prototipos
 void inicializacao_maquina_pio(uint pino);
@@ -40,7 +43,7 @@ void atribuir_cor_ao_led(const uint indice, const uint8_t r, const uint8_t g, co
 void limpar_o_buffer();
 void escrever_no_buffer();
 void inicializacao_gpio();
-void desenhar(char matriz[5][5]);
+void desenhar(char matriz[5][5], int potencia);
 
 
 // GPIO-----------------------------------------------------------------

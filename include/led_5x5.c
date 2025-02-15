@@ -8,9 +8,9 @@ uint matrizint[5][5] = {
 		{5, 6, 7, 8, 9},
 		{4, 3, 2, 1, 0}};
 
-void desenhar(char desenho[5][5])
+void desenhar(char desenho[5][5], int potencia)
 {
-	_intensidade_ = 255;
+	_intensidade_ = potencia;
 	for (int x = 0; x < tamanho_matriz; x++)
 	{
 		for (int y = 0; y < tamanho_matriz; y++)

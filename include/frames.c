@@ -74,3 +74,5 @@ char matriz_9[5][5] = {
     {'*', 'G', 'G', 'G', '*'},
     {'*', '*', '*', 'G', '*'},
     {'*', 'G', 'G', 'G', '*'}};
+ 
+    char (*matriz[10])[5] = {matriz_0, matriz_1, matriz_2, matriz_3, matriz_4, matriz_5, matriz_6, matriz_7, matriz_8, matriz_9};
