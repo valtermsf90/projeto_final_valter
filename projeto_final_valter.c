@@ -93,8 +93,7 @@ int main()
         ssd1306_draw_string(&ssd, strx, 8, 52);  // Desenha uma string
         ssd1306_line(&ssd, 84, 37, 84, 60, cor);
         ssd1306_draw_string(&ssd, stry, 49, 52);
-        ssd1306_draw_string(&ssd, strnum, 99, 52);
-        // Desenha uma string
+        ssd1306_draw_string(&ssd, strnum, 99, 52);  // Desenha uma string
         ssd1306_send_data(&ssd); // Atualiza o display
 
         config_pwm(PIN);
@@ -135,9 +134,7 @@ void interrupcao(uint gpio, uint32_t events)
     if (current_time - last_time > 500000) // 500 ms de debouncing
     {
         last_time = current_time; // Atualiza o tempo do último evento
-        // Verifica qual botão foi pressionado
-
-        //
+      
         if (gpio == BT_A)
         {
             if (num == 9)
@@ -160,7 +157,7 @@ void interrupcao(uint gpio, uint32_t events)
             {
                 num--;
             }
-            printf(" O numero da matriz é %d\n", num);
+            
         }
     }
 }
