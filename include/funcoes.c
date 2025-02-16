@@ -4,7 +4,7 @@
 #include "hardware/timer.h"
 #include "hardware/clocks.h"
 #include "funcoes.h"
-
+#include "ssd1306.h"
 #include "ws2818b.pio.h"
 #include <stdlib.h>
 #include <time.h>
@@ -18,8 +18,13 @@
 #define LED_B 12
 #define BT_A 5
 #define BT_B 6
-#define BT_J 23
-
+#define BT_J 22
+#define I2C_PORT i2c1
+#define I2C_SDA 14
+#define I2C_SCL 15
+#define endereco 0x3C
+#define WIDTH 128
+#define HEIGHT 64
 // Definição de uma estrutura para representar um pixel.
 struct pixel_t
 {
@@ -33,7 +38,8 @@ LED_da_matriz leds[CONTADOR_LED];
 
 PIO maquina_pio;
 uint variavel_maquina_de_estado;
-static volatile uint32_t last_time = 0;
+
+ssd1306_t ssd;
 
 
 
@@ -44,6 +50,8 @@ void limpar_o_buffer();
 void escrever_no_buffer();
 void inicializacao_gpio();
 void desenhar(char matriz[5][5], int potencia);
+void config_display();
+
 
 
 // GPIO-----------------------------------------------------------------
@@ -136,4 +144,25 @@ void limpar_o_buffer()
 	}
 }
 
-//ADC---------------------------------------------------------
+void config_display()
+{
+    // Configuração do I2C
+    i2c_init(I2C_PORT, 400 * 1000);
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
+
+    // Inicialização do display OLED
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, endereco, I2C_PORT);
+    ssd1306_config(&ssd);
+    ssd1306_send_data(&ssd);
+
+    // Limpa o display
+    ssd1306_fill(&ssd, false);
+    ssd1306_send_data(&ssd);
+}
+void limpar_tela_serial()
+{
+    printf("\x1b[2J\x1b[H"); // Limpa a tela e move o cursor para o início
+}
