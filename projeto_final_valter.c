@@ -29,14 +29,14 @@ bool status = true;
 int quadro = 3;
 int cont = 0;
 int y = 0;
-
+int tx_atualizacao = 1000;
 // PROTOTIPOS
 
 void tela(int modo)
 {
-    if (modo == 1) // OLHOS MOVENDO 
+    if (modo == 1) // OLHOS MOVENDO
     {
-
+        tx_atualizacao = 10;
         int olho_esq_x;
         signed int olho_esq_y;
 
@@ -90,80 +90,95 @@ void tela(int modo)
         ssd1306_rect(&ssd, 50, 80, 5, 5, cor, cor);
         ssd1306_rect(&ssd, 50, 110, 5, 5, cor, cor);
         ssd1306_rect(&ssd, 55, 85, 25, 5, cor, cor);
-
-        // boca
-        ssd1306_rect(&ssd, 55, 55, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 55, 70, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 60, 60, 10, 5, cor, cor);
-
+        if (status == true)
+        {
+            // boca
+            ssd1306_rect(&ssd, 55, 55, 5, 5, cor, cor);
+            ssd1306_rect(&ssd, 55, 70, 5, 5, cor, cor);
+            ssd1306_rect(&ssd, 60, 60, 10, 5, cor, cor);
+        }
+        else
+        {
+            ssd1306_rect(&ssd, 60, 55, 5, 5, cor, cor);
+            ssd1306_rect(&ssd, 60, 70, 5, 5, cor, cor);
+            ssd1306_rect(&ssd, 55, 60, 10, 5, cor, cor);
+        }
         // olho
         ssd1306_rect(&ssd, olho_esq_y, olho_esq_x, 15, 15, cor, cor);
         ssd1306_rect(&ssd, olho_esq_y, olho_esq_x + 66, 15, 15, cor, cor);
     }
     if (modo == 2) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
     {
-        
+
+        tx_atualizacao = 200;
 
         ssd1306_rect(&ssd, 0, 0, 127, 63, cor, !cor);
 
-        ssd1306_draw_string(&ssd, "LEDS", 3, 3); ssd1306_draw_string(&ssd, "R", 63, 3);ssd1306_draw_string(&ssd, "G", 83, 3);ssd1306_draw_string(&ssd, "B", 103, 3);
+        ssd1306_draw_string(&ssd, "LEDS", 3, 3);
+        ssd1306_draw_string(&ssd, "R", 63, 3);
+        ssd1306_draw_string(&ssd, "G", 83, 3);
+        ssd1306_draw_string(&ssd, "B", 103, 3);
         ssd1306_draw_string(&ssd, "STATUS", 3, 13);
-                ssd1306_rect(&ssd, 13, 63, 8, 8, cor, st_led_R); ssd1306_rect(&ssd, 13, 83, 8, 8, cor, gpio_get(LED_G));ssd1306_rect(&ssd, 13, 103, 8, 8, cor, st_led_B);
-
+        ssd1306_rect(&ssd, 13, 63, 8, 8, cor, st_led_R);
+        ssd1306_rect(&ssd, 13, 83, 8, 8, cor, gpio_get(LED_G));
+        ssd1306_rect(&ssd, 13, 103, 8, 8, cor, st_led_B);
 
         ssd1306_rect(&ssd, 31, 1, 96, 32, cor, !cor);
-        ssd1306_draw_string(&ssd, "MIC", 3, 33); ssd1306_draw_string(&ssd, str_mic, 63, 33);
-        ssd1306_draw_string(&ssd, "EIXO X", 3, 43); ssd1306_draw_string(&ssd, str_x, 63, 43);
-        ssd1306_draw_string(&ssd, "EIXO Y", 3, 53); ssd1306_draw_string(&ssd, str_y, 63, 53);
+        ssd1306_draw_string(&ssd, "MIC", 3, 33);
+        ssd1306_draw_string(&ssd, str_mic, 63, 33);
+        ssd1306_draw_string(&ssd, "EIXO X", 3, 43);
+        ssd1306_draw_string(&ssd, str_x, 63, 43);
+        ssd1306_draw_string(&ssd, "EIXO Y", 3, 53);
+        ssd1306_draw_string(&ssd, str_y, 63, 53);
 
-        ssd1306_rect(&ssd, 31, 96, 31, 32, cor, !cor);  
-        ssd1306_draw_string(&ssd, " BT", 97, 33); 
-        ssd1306_draw_string(&ssd, "A", 99, 43); ssd1306_rect(&ssd, 43, 110, 8, 8, cor, !gpio_get(BT_A));
-        ssd1306_draw_string(&ssd, "J", 98, 53); ssd1306_rect(&ssd, 53, 110, 8, 8, cor, !gpio_get(BT_J));
-     
+        ssd1306_rect(&ssd, 31, 96, 31, 32, cor, !cor);
+        ssd1306_draw_string(&ssd, " BT", 97, 33);
+        ssd1306_draw_string(&ssd, "A", 99, 43);
+        ssd1306_rect(&ssd, 43, 110, 8, 8, cor, !gpio_get(BT_A));
+        ssd1306_draw_string(&ssd, "J", 98, 53);
+        ssd1306_rect(&ssd, 53, 110, 8, 8, cor, !gpio_get(BT_J));
     }
 
-    if(modo == 3)
+    if (modo == 3)
     {
+        tx_atualizacao = 500;
         int index = 60;
         int x = cont % 67 + index;
-        
-        int y_invert = (mic)%43;
-        y = 63-y_invert;
-        int ecg = (y_invert*190)/43;
+
+        int y_invert = (mic) % 43;
+        y = 63 - y_invert;
+        int ecg = (y_invert * 190) / 43;
         char str_ecg[5];
-        sprintf(str_ecg, "%d", ecg);        // Converte o inteiro em string
-        ssd1306_rect(&ssd, 0, 60,127 - 60,18,cor,!cor );//caixa menor
-        ssd1306_draw_string(&ssd,"ECG", 64, 4 );ssd1306_draw_string(&ssd, str_ecg, 100, 4);
-        ssd1306_rect(&ssd, 18, 60,127 - 60,63- 18,cor,!cor );// caixa maior
+        sprintf(str_ecg, "%d", ecg);                        // Converte o inteiro em string
+        ssd1306_rect(&ssd, 0, 60, 127 - 60, 18, cor, !cor); // caixa menor
+        ssd1306_draw_string(&ssd, "ECG", 64, 4);
+        ssd1306_draw_string(&ssd, str_ecg, 100, 4);
+        ssd1306_rect(&ssd, 18, 60, 127 - 60, 63 - 18, cor, !cor); // caixa maior
 
-        ssd1306_rect(&ssd, 60, index, cont, 2, cor, cor);//fixa
+        ssd1306_rect(&ssd, 60, index, cont, 2, cor, cor); // fixa
 
-        ssd1306_rect(&ssd, y+((61-y)/3)*2, x, 2, (62-y)/3, cor, cor);
-        ssd1306_rect(&ssd, y+((61-y)/3), x+2, 2, (62-y)/3, cor, cor);
-        ssd1306_rect(&ssd, y, x+4, 2, (62-y)/3, cor, cor);
+        ssd1306_rect(&ssd, y + ((61 - y) / 3) * 2, x, 2, (62 - y) / 3, cor, cor);
+        ssd1306_rect(&ssd, y + ((61 - y) / 3), x + 2, 2, (62 - y) / 3, cor, cor);
+        ssd1306_rect(&ssd, y, x + 4, 2, (62 - y) / 3, cor, cor);
 
+        ssd1306_rect(&ssd, y_invert, x + 4, 1, 1, cor, cor); // movel
 
-        ssd1306_rect(&ssd, y_invert, x+4,1, 1, cor, cor); //movel
+        ssd1306_rect(&ssd, y, x + 4, 2, (62 - y) / 3, cor, cor);
+        ssd1306_rect(&ssd, y + ((61 - y) / 3), x + 6, 2, (62 - y) / 3, cor, cor);
+        ssd1306_rect(&ssd, y + ((61 - y) / 3) * 2, x + 8, 2, (62 - y) / 3, cor, cor);
 
-        ssd1306_rect(&ssd, y, x+4, 2, (62-y)/3, cor, cor);
-        ssd1306_rect(&ssd, y+((61-y)/3), x+6, 2, (62-y)/3, cor, cor);
-        ssd1306_rect(&ssd, y+((61-y)/3)*2, x+8, 2, (62-y)/3, cor, cor);
-
-
-        ssd1306_rect(&ssd, 60, x+8, 127- x, 2, cor, cor);//fixa
+        ssd1306_rect(&ssd, 60, x + 8, 127 - x, 2, cor, cor); // fixa
         printf("X: %d\n", x);
         printf("Y: %d\n", y);
         printf("Y2: %d\n", y_invert);
         printf("cont: %d", cont);
-        
+
         cont++;
-        if(cont > 66){
+        if (cont > 66)
+        {
             cont = 0;
         }
-       
     }
- 
 }
 int main()
 {
@@ -204,7 +219,7 @@ int main()
         if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
         {
             pwm_set_gpio_level(LED_R, eixo_x_valor);
-            st_led_R = st_led_R + status;           
+            st_led_R = st_led_R + status;
         }
         else
         {
@@ -231,14 +246,13 @@ int main()
         printf("LED R: %d\n", st_led_R);
         printf("LED B: %d\n", st_led_B);
         printf("LED G: %d\n", led_ON);
-        
-        sleep_ms(100);
+        printf("TIMER: %d\n", tx_atualizacao);
+        sleep_ms(tx_atualizacao);
         limpar_tela_serial();
     }
 }
 
-
-//interrupções e  temporizadores
+// interrupções e  temporizadores
 void interrupcao(uint gpio, uint32_t events)
 {
     // Obtém o tempo atual em microssegundos
