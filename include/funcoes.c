@@ -51,6 +51,7 @@ void escrever_no_buffer();
 void inicializacao_gpio();
 void desenhar(char matriz[5][5], int potencia);
 void config_display();
+void beep(int pino, int tempo);
 
 
 
@@ -165,4 +166,9 @@ void config_display()
 void limpar_tela_serial()
 {
     printf("\x1b[2J\x1b[H"); // Limpa a tela e move o cursor para o início
+}
+void beep(int pino, int tempo){
+	gpio_put(pino, 1);
+	sleep_ms(tempo);
+	gpio_put(pino, 0);
 }

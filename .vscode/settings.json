@@ -39,6 +39,7 @@
     "files.associations": {
         "clocks.h": "c",
         "stdlib.h": "c",
-        "pio.h": "c"
+        "pio.h": "c",
+        "timer.h": "c"
     }
 }
