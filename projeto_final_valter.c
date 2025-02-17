@@ -24,13 +24,13 @@ bool st_led_R = false;
 bool st_led_B = false;
 bool led_ON = true;
 bool status = true;
-int quadro = 3;
+int quadro = 4;
 int cont = 0;
 int y = 0;
 int tx_atualizacao = 1000;
 static volatile uint32_t last_time = 0;
 
-//inicio
+// inicio
 int main()
 {
     // Configuração das interrupções
@@ -48,7 +48,7 @@ int main()
     config_pwm(LED_B, status);
     config_pwm(LED_R, status);
 
-    //LOOP
+    // LOOP
     while (true)
     {
         // muda o estado do o LED verde
@@ -70,7 +70,7 @@ int main()
         if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
         {
             pwm_set_gpio_level(LED_R, eixo_x_valor);
-            st_led_R = st_led_R + status; 
+            st_led_R = st_led_R + status;
         }
         else
         {
@@ -98,6 +98,7 @@ int main()
         printf("LED B: %d\n", st_led_B);
         printf("LED G: %d\n", led_ON);
         printf("TIMER: %d\n", tx_atualizacao);
+        printf("TELA %d\n", quadro);
         sleep_ms(tx_atualizacao);
         limpar_tela_serial();
     }
@@ -120,7 +121,7 @@ void interrupcao(uint gpio, uint32_t events)
             // Alterna o estado da variável led_ON
             led_ON = !led_ON;
             quadro++;
-            if (quadro > 3)
+            if (quadro > 4)
             {
                 quadro = 1;
             }
@@ -144,7 +145,7 @@ void tela(int modo)
 {
     if (modo == 1) // OLHOS MOVENDO
     {
-        //VARIAVEIS
+        // VARIAVEIS
         tx_atualizacao = 10;
         int olho_esq_x;
         signed int olho_esq_y;
@@ -248,10 +249,9 @@ void tela(int modo)
         ssd1306_draw_string(&ssd, "J", 98, 53);
         ssd1306_rect(&ssd, 53, 110, 8, 8, cor, !gpio_get(BT_J));
     }
-
     if (modo == 3)
     {
-        //VARIAVEIS
+        // VARIAVEIS
         tx_atualizacao = 500;
         int index = 60;
         int x = cont % 67 + index;
@@ -259,16 +259,16 @@ void tela(int modo)
         y = 63 - y_invert;
         int ecg = (y_invert * 190) / 43;
         char str_ecg[5];
-        sprintf(str_ecg, "%d", ecg);  // Converte o inteiro em string
+        sprintf(str_ecg, "%d", ecg); // Converte o inteiro em string
 
-        //DESENHO--------
-        ssd1306_rect(&ssd, 0, 60, 127 - 60, 18, cor, !cor); // caixa menor
-        ssd1306_draw_string(&ssd, "ECG", 64, 4);// ECG
-        ssd1306_draw_string(&ssd, str_ecg, 100, 4); // VARIAVEL ecg
+        // DESENHO--------
+        ssd1306_rect(&ssd, 0, 60, 127 - 60, 18, cor, !cor);       // caixa menor
+        ssd1306_draw_string(&ssd, "ECG", 64, 4);                  // ECG
+        ssd1306_draw_string(&ssd, str_ecg, 100, 4);               // VARIAVEL ecg
         ssd1306_rect(&ssd, 18, 60, 127 - 60, 63 - 18, cor, !cor); // caixa maior
 
         ssd1306_rect(&ssd, 60, index, cont, 2, cor, cor); // LINHA FIXA ANTERIOR
-        //ESCALA CRESCENTE
+        // ESCALA CRESCENTE
         ssd1306_rect(&ssd, y + ((61 - y) / 3) * 2, x, 2, (62 - y) / 3, cor, cor);
         ssd1306_rect(&ssd, y + ((61 - y) / 3), x + 2, 2, (62 - y) / 3, cor, cor);
         ssd1306_rect(&ssd, y, x + 4, 2, (62 - y) / 3, cor, cor);
@@ -285,9 +285,10 @@ void tela(int modo)
         // EXIBIR VALORES PARA DEPURAÇÃO
         printf("X: %d\n", x);
         printf("Y: %d\n", y);
-        printf("Y2: %d\n", y_invert);
+        printf("Y INVERT: %d\n", y_invert);
         printf("cont: %d\n", cont);
-        beep(BUZZER_A, tx_atualizacao/2);
+
+        // beep(BUZZER_A, tx_atualizacao/2);
 
         // CONTADOR PARA REINICIAR AO CHEGAR NO FINAL
         cont++;
@@ -296,5 +297,62 @@ void tela(int modo)
             cont = 0;
         }
     }
-   
+    if (modo == 4)
+    {
+        // VARIAVEIS
+        tx_atualizacao = 500;
+        int index = 60;
+        
+        int x = cont % 67 + index;
+        int y_invert = (mic) % 43;
+        y = 63 - y_invert;
+        int linha = 40;
+        int ecg = (y_invert * 190) / 43;
+        char str_ecg[5];
+        sprintf(str_ecg, "%d", ecg); // Converte o inteiro em string
+
+        // DESENHO--------
+        ssd1306_rect(&ssd, 0, 60, 127 - 60, 18, cor, !cor);       // caixa menor
+        ssd1306_draw_string(&ssd, "ECG", 64, 4);                  // ECG
+        ssd1306_draw_string(&ssd, str_ecg, 100, 4);               // VARIAVEL ecg
+        ssd1306_rect(&ssd, 18, 60, 127 - 60, 63 - 18, cor, !cor); // caixa maior
+
+        ssd1306_rect(&ssd, linha, index, cont, 1, cor, cor); // LINHA FIXA ANTERIOR
+        if(y > (linha*43 /63)){
+        
+        // ESCALA CRESCENTE
+        ssd1306_rect(&ssd, linha, x, 1, (y- linha)/3, cor, cor);
+        ssd1306_rect(&ssd, linha + (y- linha)/3, x + 1, 1, (y- linha)/3,  cor, cor);
+        ssd1306_rect(&ssd, linha + ((y- linha)/3)*2, x + 2, 1, (y- linha)/3,  cor, cor);
+    }
+        ssd1306_rect(&ssd, linha + (y- linha)/3, x + 4, 1, (y- linha)/3,  cor, cor);
+        ssd1306_rect(&ssd, linha, x+5, 1, (y- linha)/3, cor, cor);
+        //ssd1306_rect(&ssd, y + ((61 - y) / 3), x + 2, 2, (62 - y) / 3, cor, cor);
+        //ssd1306_rect(&ssd, y, x + 4, 2, (62 - y) / 3, cor, cor);
+
+        ssd1306_rect(&ssd, y_invert, x + 4, 1, 1, cor, cor); // PONTO MOVEL
+
+        /*// ESCALA DECRESCENTE
+        ssd1306_rect(&ssd, y, x + 4, 2, (62 - y) / 3, cor, cor);
+        ssd1306_rect(&ssd, y + ((61 - y) / 3), x + 6, 2, (62 - y) / 3, cor, cor);
+        ssd1306_rect(&ssd, y + ((61 - y) / 3) * 2, x + 8, 2, (62 - y) / 3, cor, cor);*/
+
+        ssd1306_rect(&ssd, linha, x + 7, 127 - x, 1, cor, cor); // LINHA FIXA POSTERIOR
+    
+    // EXIBIR VALORES PARA DEPURAÇÃO
+    printf("X: %d\n", x);
+    printf("Y: %d\n", y);
+    printf("ecg: %d\n",linha*43 /63);
+    printf("Y INVERT: %d\n", y_invert);
+    printf("cont: %d\n", cont);
+
+    // beep(BUZZER_A, tx_atualizacao/2);
+
+    // CONTADOR PARA REINICIAR AO CHEGAR NO FINAL
+    cont++;
+    if (cont > 66)
+    {
+        cont = 0;
+    }
+}
 }
