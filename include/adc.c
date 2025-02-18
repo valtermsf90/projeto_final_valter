@@ -6,7 +6,7 @@
 
 uint16_t eixo_x_valor;
 uint16_t eixo_y_valor;
-uint16_t mic;
+int mic;
 char str_x[5];
 char str_y[5];
 char str_mic[5];
