@@ -19,11 +19,14 @@
 void config_display();
 static void interrupcao(uint gpio, uint32_t events);
 void tela(int modo);
+void desenhar(char desenho[5][5], int potencia);// VARIAVEIS
 
-// VARIAVEIS
 bool cor = true;
-bool st_led_R = true;
+bool st_bz_A = 0;
+bool st_bz_B = 0;
+bool st_led_R = false;
 bool st_led_B = false;
+bool st_led_G = false;
 bool led_ON = false;
 bool status = false;
 int quadro = 4;
@@ -76,9 +79,6 @@ int main()
     // LOOP
     while (true)
     {
-        // muda o estado do o LED verde
-        gpio_put(LED_G, led_ON);
-
         // Le os valores dos analogicos eixo x, eixo y e microfone e atualiza as variaveis
         adc_config();
 
@@ -93,16 +93,21 @@ int main()
 
         // Exibe os valores dos eixos e perifericos no terminal para depuração
         printf("\n\n");
+        printf("VALORES PARA DEPURAÇÃO\n");
+        printf("SINAIS ANALOGICOS\n");
         printf("X: %d\n", x);
         printf("Y: %d\n", y);
-        printf("Y2: %d\n", y2);
         printf("Y INVERT: %d\n", y_invert);
         printf("EIXO X: %d\n", eixo_x_valor);
         printf("EIXO Y: %d\n", eixo_y_valor);
         printf("MIC: %d\n", mic);
+        printf("\nSTATUS PERIFERICOS\n");
         printf("LED R: %d\n", st_led_R);
         printf("LED B: %d\n", st_led_B);
-        printf("LED G: %d\n", led_ON);
+        printf("LED G: %d\n", st_led_G);
+        printf("BUZZER A: %d\n", st_bz_A);
+        printf("BUZZER B: %d\n", st_bz_B);
+        printf("\nINFORMÇÕES DA EXCUÇÃO\n");
         printf("TIMER: %d\n", tx_atualizacao);
         printf("TELA %d\n", quadro);
         printf("STATUS: %d\n", status);
@@ -126,7 +131,7 @@ void interrupcao(uint gpio, uint32_t events)
         if (gpio == BT_J)
         {
             // Alterna o estado da variável led_ON
-            led_ON = !led_ON;
+            
             quadro++;
             if (quadro > 4)
             {
@@ -143,8 +148,13 @@ void interrupcao(uint gpio, uint32_t events)
         // Verifica se o botão BT_A foi pressionado e alterna o status do PWM
         if (gpio == BT_A)
         {
+            if(quadro == 1){
+                status = !status;   
+            }
+            if(quadro == 3){
             status = !status;               // Alterna entre ligado e desligado
-            pwm_set_enabled(slice, status); // Ativa/desativa o PWM
+            pwm_set_enabled(slice, status); 
+            }// Ativa/desativa o PWM
         }
     }
 }
@@ -152,8 +162,14 @@ void tela(int modo)
 {
     if (modo == 1) // OLHOS MOVENDO
     {
+        limpar_o_buffer();
+        desenhar(matriz_1,64);
+        escrever_no_buffer();
         // VARIAVEIS
         tx_atualizacao = 10;
+        gpio_put(LED_G,0);
+        gpio_put(LED_B, 0);
+        gpio_put(LED_R, 0);
         int olho_esq_x;
         signed int olho_esq_y;
 
@@ -213,6 +229,8 @@ void tela(int modo)
             ssd1306_rect(&ssd, 55, 55, 5, 5, cor, cor);
             ssd1306_rect(&ssd, 55, 70, 5, 5, cor, cor);
             ssd1306_rect(&ssd, 60, 60, 10, 5, cor, cor);
+
+
         }
         else
         {
@@ -222,11 +240,14 @@ void tela(int modo)
             ssd1306_rect(&ssd, 55, 60, 10, 5, cor, cor);
         }
         // IRIS MOVEL
-        ssd1306_rect(&ssd, olho_esq_y, olho_esq_x, 15, 15, cor, cor);
-        ssd1306_rect(&ssd, olho_esq_y, olho_esq_x + 66, 15, 15, cor, cor);
+        ssd1306_rect(&ssd, olho_esq_y, olho_esq_x, 15, 15, cor, status);
+        ssd1306_rect(&ssd, olho_esq_y, olho_esq_x + 66, 15, 15, cor, status);
     }
     if (modo == 2) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
     {
+        limpar_o_buffer();
+        desenhar(matriz_2,64);
+        escrever_no_buffer();
         led_ON = true;
         tx_atualizacao = 200;
 
@@ -258,6 +279,9 @@ void tela(int modo)
     }
     if (modo == 3)
     {
+        limpar_o_buffer();
+        desenhar(matriz_3,64);
+        escrever_no_buffer();
         // VARIAVEIS
         tx_atualizacao = 500;
         int coluna = 60;
@@ -306,11 +330,14 @@ void tela(int modo)
     }
     if (modo == 4)
     {
+        limpar_o_buffer();
+        desenhar(matriz_4,64);
+        escrever_no_buffer();
         adc_config();
-
+       
         // VARIAVEIS
         // obtendo dados analogicos
-        tx_atualizacao = 150;
+        tx_atualizacao = 132;
         y_invert = (eixo_x_valor * 43) / 4000;
         x = cont % 67 + coluna;
         y = 63 - y_invert;
@@ -337,17 +364,17 @@ void tela(int modo)
             sprintf(str_pA, "%d", pA);   // Converte o inteiro em string
             sprintf(str_pA2, "%d", pA2); // Converte o inteiro em string
             sprintf(str_bpm, "%d", bpm);
-            config_pwm_beep(BUZZER_A, 1, 2000);
-            config_pwm_beep(BUZZER_B, 1, 2000);
+            config_pwm_beep(BUZZER_B, 1, 2000);st_bz_B = 1;
+            config_pwm_beep(BUZZER_A, 1, 2000);st_bz_A = 1;
         }
         if ((cont % 6 == 0) && (obito == false))
         {
-            gpio_put(LED_G, 0);
-            gpio_put(LED_R, 0);
+            gpio_put(LED_G, 0);st_led_G = 0;
+            gpio_put(LED_R, 0);st_led_R = 0;
             sleep_ms(100);
         }
-        config_pwm_beep(BUZZER_B, 0, 2000);
-        config_pwm_beep(BUZZER_A, 0, 2000);
+        config_pwm_beep(BUZZER_B, 0, 2000);st_bz_B = 0;
+        config_pwm_beep(BUZZER_A, 0, 2000);st_bz_A = 0;
 
         // BPM----------------------------------------------------------------------+
         ssd1306_rect(&ssd, 0, 0, coluna, 21, cor, !cor);           // caixa menor   |
@@ -360,8 +387,8 @@ void tela(int modo)
         //--------------------------------------------------------------------------+
         // BPM----------------------------------------------------------------------+
         ssd1306_rect(&ssd, 21, 0, coluna, 21, cor, !cor);           // caixa menor  |
-        ssd1306_draw_string(&ssd, "TEM", 2, 23);                    // BPM          |
-        ssd1306_draw_string(&ssd, str_temp_C, 30, 23);
+        ssd1306_draw_string(&ssd, "TEMP", 2, 23);                    // BPM          |
+        ssd1306_draw_string(&ssd, str_temp_C, 37, 23);
         ssd1306_line(&ssd, 0, 39, cont, 39, cor);
         ssd1306_line(&ssd, cont, 39, 14 + cont,39-((temp_C * 10)/46), cor);          //|
         ssd1306_line(&ssd, 14 + cont, 39-((temp_C * 10)/46), 28 + cont,39, cor); 
@@ -401,10 +428,10 @@ void tela(int modo)
             ssd1306_line(&ssd, coluna + cont + 27, linha, coluna + cont + 32, linha, cor);
             ssd1306_line(&ssd, coluna + cont + 32, linha, coluna + cont + 37, linha, cor);
             ssd1306_line(&ssd, coluna + cont + 37, linha, coluna + cont + 42, linha, cor);
-            gpio_put(LED_R, 1);
-            gpio_put(LED_G, 0);
-            config_pwm_beep(BUZZER_A, 1, 2000);
-            config_pwm_beep(BUZZER_B, 1, 2000);
+            gpio_put(LED_R, 1);st_led_R = 1;
+            gpio_put(LED_G, 0);st_led_G = 0;
+            config_pwm_beep(BUZZER_A, 1, 2000);st_bz_A = 1;
+            config_pwm_beep(BUZZER_B, 1, 2000);st_bz_B = 1;
             obito = true;
 
         } //-------------------------------------------------------------------------------------------------
@@ -412,8 +439,8 @@ void tela(int modo)
         {
 
             obito = false;
-            gpio_put(LED_R, 0);
-            gpio_put(LED_G, 1);
+            gpio_put(LED_R, 0);st_led_R= 0;
+            gpio_put(LED_G, 1);st_led_G = 1;
 
             // MEDIÇÃO 01
             ssd1306_line(&ssd, coluna + cont, linha, coluna + cont + 5, y, cor);
@@ -431,13 +458,13 @@ void tela(int modo)
         ssd1306_rect(&ssd, linha, coluna + cont + 42, 127 - (coluna + cont + 42), 1, cor, cor);
         //----------------------------------------------------------------------------------------------------
         // EXIBIR VALORES PARA DEPURAÇÃO----------------------------------------------------------------------
-        printf("cont: %d\n", cont);
-        
+        printf("VARIAVEIS DA TELA\n");
+        printf("cont: %d\n", cont);        
         printf("pA: %d\n", pA);
         printf("pA2: %d\n", pA2);
         printf("Bpm: %d\n", bpm);
         printf("Resp: %d\n", resp);
-        printf("C° : %d\n", temp_C);     
+        printf("C°: %d\n", temp_C);     
 
         // CONTADOR PARA REINICIAR AO CHEGAR NO FINAL----------------------------------------------------------
         cont = cont + 1;
