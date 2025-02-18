@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include "pico/stdlib.h"
 #include "hardware/adc.h"
 #include "hardware/pwm.h"
@@ -17,18 +18,40 @@
 // PROTOTIPOS
 void config_display();
 static void interrupcao(uint gpio, uint32_t events);
+void tela(int modo);
 
 // VARIAVEIS
 bool cor = true;
-bool st_led_R = false;
+bool st_led_R = true;
 bool st_led_B = false;
 bool led_ON = false;
-bool status = true;
+bool status = false;
 int quadro = 4;
-int cont = 0;
-int y = 0;
 int tx_atualizacao = 1000;
 static volatile uint32_t last_time = 0;
+
+// VARIAVEIS QUADRO 4
+bool obito = false;
+int cont = 0;
+int y = 0;
+int linha = 40;
+int coluna = 55;
+int x;
+int y_invert;
+int y2;
+int ecg = 0;
+int ecg2 = 0;
+char str_ecg[5];
+char str_ecg2[5];
+int bpm = 0;
+char str_bpm[5];
+//===================
+bool pulso(struct repeating_timer *t)
+{
+    gpio_put(LED_R, 1);
+    sleep_ms(60 / bpm * 500);
+    gpio_put(LED_R, 0);
+}
 
 // inicio
 int main()
@@ -45,8 +68,6 @@ int main()
     inicializacao_maquina_pio(PINO_MATRIZ_LED);
     config_display();
     adc_config();
-    config_pwm(LED_B, status);
-    config_pwm(LED_R, status);
 
     // LOOP
     while (true)
@@ -66,39 +87,17 @@ int main()
         // Atualiza o display
         ssd1306_send_data(&ssd);
 
-        // Controla o brilho do LED vermelho com base no eixo X
-        if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
-        {
-            pwm_set_gpio_level(LED_R, eixo_x_valor);
-            st_led_R = st_led_R + status;
-        }
-        else
-        {
-            pwm_set_gpio_level(LED_R, 0);
-            st_led_R = false;
-        }
-
-        // Controla o brilho do LED azul com base no eixo Y
-        if ((eixo_y_valor < 1500) || (eixo_y_valor > 2200))
-        {
-            pwm_set_gpio_level(LED_B, eixo_y_valor);
-            st_led_B = st_led_B + status;
-        }
-        else
-        {
-            pwm_set_gpio_level(LED_B, 0);
-            st_led_B = false;
-        }
-
         // Exibe os valores dos eixos e perifericos no terminal para depuração
-        /*  printf("EIXO X: %d\n", eixo_x_valor);
-          printf("EIXO Y: %d\n", eixo_y_valor);
-          printf("MIC: %d\n", mic);
-          printf("LED R: %d\n", st_led_R);
-          printf("LED B: %d\n", st_led_B);
-          printf("LED G: %d\n", led_ON);
-          printf("TIMER: %d\n", tx_atualizacao);
-          printf("TELA %d\n", quadro);*/
+        printf("\n\n");
+        printf("EIXO X: %d\n", eixo_x_valor);
+        printf("EIXO Y: %d\n", eixo_y_valor);
+        printf("MIC: %d\n", mic);
+        printf("LED R: %d\n", st_led_R);
+        printf("LED B: %d\n", st_led_B);
+        printf("LED G: %d\n", led_ON);
+        printf("TIMER: %d\n", tx_atualizacao);
+        printf("TELA %d\n", quadro);
+        printf("STATUS: %d\n", status);
         sleep_ms(tx_atualizacao);
         limpar_tela_serial();
     }
@@ -220,7 +219,7 @@ void tela(int modo)
     }
     if (modo == 2) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
     {
-
+        led_ON = true;
         tx_atualizacao = 200;
 
         ssd1306_rect(&ssd, 0, 0, 127, 63, cor, !cor);
@@ -253,8 +252,8 @@ void tela(int modo)
     {
         // VARIAVEIS
         tx_atualizacao = 500;
-        int index = 60;
-        int x = cont % 67 + index;
+        int coluna = 60;
+        int x = cont % 67 + coluna;
         int y_invert = (mic) % 43;
         y = 63 - y_invert;
         int ecg = (y_invert * 190) / 43;
@@ -267,7 +266,7 @@ void tela(int modo)
         ssd1306_draw_string(&ssd, str_ecg, 100, 4);               // VARIAVEL ecg
         ssd1306_rect(&ssd, 18, 60, 127 - 60, 63 - 18, cor, !cor); // caixa maior
 
-        ssd1306_rect(&ssd, 60, index, cont, 2, cor, cor); // LINHA FIXA ANTERIOR
+        ssd1306_rect(&ssd, 60, coluna, cont, 2, cor, cor); // LINHA FIXA ANTERIOR
         // ESCALA CRESCENTE
         ssd1306_rect(&ssd, y + ((61 - y) / 3) * 2, x, 2, (62 - y) / 3, cor, cor);
         ssd1306_rect(&ssd, y + ((61 - y) / 3), x + 2, 2, (62 - y) / 3, cor, cor);
@@ -300,63 +299,96 @@ void tela(int modo)
     if (modo == 4)
     {
         adc_config();
+
         // VARIAVEIS
-        tx_atualizacao = 1000;
-        int linha = 40;
-        int index = 55;
-        int x = cont % 67 + index;
-        int y_invert = (eixo_x_valor * 43) / 4000;
-        int y2;
+
+        tx_atualizacao = 150;
+        y_invert = (eixo_x_valor * 43) / 4000;
+        x = cont % 67 + coluna;
         y = 63 - y_invert;
         y2 = 63 - (eixo_y_valor * 43) / 4000;
-        int ecg = 0;
-        int ecg2= 0;
-        char str_ecg[5];
-        char str_ecg2[5];
-        int bpm = 0;
-        char str_bpm[5];
-        if (cont % 3 == 0)
+
+        if (cont % 6 == 0)
         {
             ecg = (eixo_x_valor * 22) / 4000;
             ecg2 = (eixo_y_valor * 14) / 4000;
-            bpm = (mic * 160)/4098;
-            sprintf(str_ecg, "%d", ecg); // Converte o inteiro em string
+            bpm = (mic * 160) / 4098;
+            sprintf(str_ecg, "%d", ecg);   // Converte o inteiro em string
             sprintf(str_ecg2, "%d", ecg2); // Converte o inteiro em string
             sprintf(str_bpm, "%d", bpm);
-        }
-        //BPM
-        ssd1306_rect(&ssd, 0, 0, index, 18, cor, !cor);       // caixa menor
-        ssd1306_draw_string(&ssd, "BPM", 4, 4);                  // ECG
-        ssd1306_draw_string(&ssd, str_bpm, 34, 4);    
+            config_pwm_beep(BUZZER_A, 1, 2000);
+            config_pwm_beep(BUZZER_B, 1, 2000);
+            
 
+        }
+        if ((cont % 6 == 0) && (obito == false))
+        {
+            gpio_put(LED_G, 0);
+            gpio_put(LED_R, 0);
+            sleep_ms(100);
+        }
+        config_pwm_beep(BUZZER_B, 0, 2000);
+        config_pwm_beep(BUZZER_A, 0, 2000);
+
+        // BPM
+        ssd1306_rect(&ssd, 0, 0, coluna, 18, cor, !cor); // caixa menor
+        ssd1306_draw_string(&ssd, "BPM", 4, 4);          // ECG
+        ssd1306_draw_string(&ssd, str_bpm, 34, 4);
+
+        ssd1306_rect(&ssd, 18, 0, coluna, HEIGHT - 18, cor, !cor);
 
         // ECG--------
-        ssd1306_rect(&ssd, 0, index, WIDTH - index, 18, cor, !cor);       // caixa menor
-        ssd1306_draw_string(&ssd, "ECG", index+ 2, 4);                  // ECG
-        ssd1306_draw_string(&ssd, str_ecg, index + 30 , 4);  
-        ssd1306_line(&ssd, index+46,14,index+50,4,cor);
-        //ssd1306_vline(&ssd,index + 46,2,16,cor);             // VARIAVEL ecg
-        ssd1306_draw_string(&ssd, str_ecg2, 107, 4);               // VARIAVEL ecg
-        ssd1306_rect(&ssd, 18, index, WIDTH - index, 63 - 18, cor, !cor); // caixa maior
+        ssd1306_rect(&ssd, 0, coluna, WIDTH - coluna, 18, cor, !cor); // caixa menor
+        ssd1306_draw_string(&ssd, "ECG", coluna + 2, 4);              // ECG
+        ssd1306_draw_string(&ssd, str_ecg, coluna + 30, 4);
+        ssd1306_line(&ssd, coluna + 46, 14, coluna + 50, 4, cor);
+        ssd1306_draw_string(&ssd, str_ecg2, 109, 4); // VARIAVEL ecg
+
+        ssd1306_rect(&ssd, 18, coluna, WIDTH - coluna, 63 - 18, cor, !cor); // caixa maior
 
         // LINHA FIXA ANTERIOR
-        ssd1306_rect(&ssd, linha, index, cont, 1, cor, cor);
+        ssd1306_rect(&ssd, linha, coluna, cont, 1, cor, cor);
 
-        // MEDIÇÃO 01
-        ssd1306_line(&ssd, index + cont, linha, index + cont + 5, y, cor);
-        ssd1306_line(&ssd, index + cont + 5, y, index + cont + 10, (linha - y) + linha, cor);
-        ssd1306_line(&ssd, index + cont + 10, (linha - y) + linha, index + cont + 15, linha, cor);
+        //  SE OBITO----------------------------------------------------------------------
+        if ((ecg == 0) || (ecg2 == 0) || (bpm == 0))
+        {
 
+            // MEDIÇÃO 01
+            ssd1306_line(&ssd, coluna + cont, linha, coluna + cont + 5, linha, cor);
+            ssd1306_line(&ssd, coluna + cont + 5, linha, coluna + cont + 10, linha, cor);
+            ssd1306_line(&ssd, coluna + cont + 10, linha, coluna + cont + 15, linha, cor);
+
+            // MEDIÇAÕ 02
+            ssd1306_line(&ssd, coluna + cont + 27, linha, coluna + cont + 32, linha, cor);
+            ssd1306_line(&ssd, coluna + cont + 32, linha, coluna + cont + 37, linha, cor);
+            ssd1306_line(&ssd, coluna + cont + 37, linha, coluna + cont + 42, linha, cor);
+            gpio_put(LED_R, 1);
+            gpio_put(LED_G, 0);
+            config_pwm_beep(BUZZER_A, 1, 2000);
+            config_pwm_beep(BUZZER_B, 1, 2000);
+            obito = true;
+        }//-----------------------------------------------------------------------------------
+        else
+        {
+
+            obito = false;
+            gpio_put(LED_R, 0);
+            gpio_put(LED_G, 1);
+
+            // MEDIÇÃO 01
+            ssd1306_line(&ssd, coluna + cont, linha, coluna + cont + 5, y, cor);
+            ssd1306_line(&ssd, coluna + cont + 5, y, coluna + cont + 10, (linha - y) + linha, cor);
+            ssd1306_line(&ssd, coluna + cont + 10, (linha - y) + linha, coluna + cont + 15, linha, cor);
+            // MEDIÇAÕ 02
+            ssd1306_line(&ssd, coluna + cont + 27, linha, coluna + cont + 32, y2, cor);
+            ssd1306_line(&ssd, coluna + cont + 32, y2, coluna + cont + 37, (linha - y2) + linha, cor);
+            ssd1306_line(&ssd, coluna + cont + 37, (linha - y2) + linha, coluna + cont + 42, linha, cor);
+        }
         // LINHA FIXA MEIO
-        ssd1306_rect(&ssd, linha, index + cont + 15, 12, 1, cor, cor);
-
-        // MEDIÇAÕ 02
-        ssd1306_line(&ssd, index + cont + 27, linha, index + cont + 32, y2, cor);
-        ssd1306_line(&ssd, index + cont + 32, y2, index + cont + 37, (linha - y2) + linha, cor);
-        ssd1306_line(&ssd, index + cont + 37, (linha - y2) + linha, index + cont + 42, linha, cor);
+        ssd1306_rect(&ssd, linha, coluna + cont + 15, 12, 1, cor, cor);
 
         // LINHA FINAL
-        ssd1306_rect(&ssd, linha, index + cont + 42, 127 - (index + cont + 42), 1, cor, cor);
+        ssd1306_rect(&ssd, linha, coluna + cont + 42, 127 - (coluna + cont + 42), 1, cor, cor);
 
         // EXIBIR VALORES PARA DEPURAÇÃO
         printf("cont: %d\n", cont);
@@ -371,8 +403,8 @@ void tela(int modo)
         // beep(BUZZER_A, tx_atualizacao/2);
 
         // CONTADOR PARA REINICIAR AO CHEGAR NO FINAL
-        cont = cont + 3;
-        if (index + cont + 42 > WIDTH)
+        cont = cont + 1;
+        if (cont > 29)
         {
             cont = 0;
         }

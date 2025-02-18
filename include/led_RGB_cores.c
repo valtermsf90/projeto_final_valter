@@ -10,6 +10,12 @@
 // Funções para controle de cores
 
 // Função para apagar todos os leds
+void piscar(int pino,int tempo){
+  gpio_put(pino, 1);
+  sleep_ms(60/tempo*500);
+  gpio_put(pino, 0);
+  sleep_ms(60/tempo*500);
+}
 void apagado(int tempo)
 {
   gpio_put(LED_R, 0);
