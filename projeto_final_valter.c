@@ -91,14 +91,14 @@ int main()
         }
 
         // Exibe os valores dos eixos e perifericos no terminal para depuração
-      /*  printf("EIXO X: %d\n", eixo_x_valor);
-        printf("EIXO Y: %d\n", eixo_y_valor);
-        printf("MIC: %d\n", mic);
-        printf("LED R: %d\n", st_led_R);
-        printf("LED B: %d\n", st_led_B);
-        printf("LED G: %d\n", led_ON);
-        printf("TIMER: %d\n", tx_atualizacao);
-        printf("TELA %d\n", quadro);*/
+        /*  printf("EIXO X: %d\n", eixo_x_valor);
+          printf("EIXO Y: %d\n", eixo_y_valor);
+          printf("MIC: %d\n", mic);
+          printf("LED R: %d\n", st_led_R);
+          printf("LED B: %d\n", st_led_B);
+          printf("LED G: %d\n", led_ON);
+          printf("TIMER: %d\n", tx_atualizacao);
+          printf("TELA %d\n", quadro);*/
         sleep_ms(tx_atualizacao);
         limpar_tela_serial();
     }
@@ -300,63 +300,81 @@ void tela(int modo)
     if (modo == 4)
     {
         adc_config();
-       // VARIAVEIS
-       tx_atualizacao = 1000;
-       int linha = 40;
-       int index = 60;
-       int x = cont % 67 + index;
-       int y_invert = (eixo_x_valor*43) / 4000;
-       int y2;
-       y =63 - y_invert;
-       y2 = 63 - (eixo_y_valor* 43) / 4000;
-       int ecg = 0;
-       char str_ecg[5];
-
-       if(cont% 3 == 0){
-           ecg =((y-linha) * 190) / 43;
-           sprintf(str_ecg, "%d", ecg); // Converte o inteiro em string
+        // VARIAVEIS
+        tx_atualizacao = 1000;
+        int linha = 40;
+        int index = 55;
+        int x = cont % 67 + index;
+        int y_invert = (eixo_x_valor * 43) / 4000;
+        int y2;
+        y = 63 - y_invert;
+        y2 = 63 - (eixo_y_valor * 43) / 4000;
+        int ecg = 0;
+        int ecg2= 0;
+        char str_ecg[5];
+        char str_ecg2[5];
+        int bpm = 0;
+        char str_bpm[5];
+        if (cont % 3 == 0)
+        {
+            ecg = (eixo_x_valor * 22) / 4000;
+            ecg2 = (eixo_y_valor * 14) / 4000;
+            bpm = (mic * 160)/4098;
+            sprintf(str_ecg, "%d", ecg); // Converte o inteiro em string
+            sprintf(str_ecg2, "%d", ecg2); // Converte o inteiro em string
+            sprintf(str_bpm, "%d", bpm);
         }
+        //BPM
+        ssd1306_rect(&ssd, 0, 0, index, 18, cor, !cor);       // caixa menor
+        ssd1306_draw_string(&ssd, "BPM", 4, 4);                  // ECG
+        ssd1306_draw_string(&ssd, str_bpm, 34, 4);    
 
-       // DESENHO--------
-       ssd1306_rect(&ssd, 0, 60, 127 - 60, 18, cor, !cor);       // caixa menor
-       ssd1306_draw_string(&ssd, "ECG", 64, 4);                  // ECG
-       ssd1306_draw_string(&ssd, str_ecg, 100, 4);               // VARIAVEL ecg
-       ssd1306_rect(&ssd, 18, 60, 127 - 60, 63 - 18, cor, !cor); // caixa maior
 
-       ssd1306_rect(&ssd,linha, index, cont  ,1 , cor, cor); // LINHA FIXA ANTERIOR
-       ssd1306_rect(&ssd,linha, index, cont  , 1, cor, cor); // LINHA FIXA ANTERIOR
-       // ESCALA CRESCENTE
-       
-       ssd1306_line(&ssd, index + cont, linha, index+cont+5, y, cor);   
-       
-       ssd1306_line(&ssd, index+cont+5, y,index+cont+10,(linha-y)+linha , cor);
-       ssd1306_line(&ssd, index+cont+10, (linha-y)+linha ,index+cont+15,linha , cor);       
-       
-       
-       ssd1306_rect(&ssd, linha, index+cont+15,12, 1, cor, cor); // LINHA FIXA POSTERIOR
-        ssd1306_line(&ssd,index +cont+ 27, linha,index+cont + 32, y2,cor);
+        // ECG--------
+        ssd1306_rect(&ssd, 0, index, WIDTH - index, 18, cor, !cor);       // caixa menor
+        ssd1306_draw_string(&ssd, "ECG", index+ 2, 4);                  // ECG
+        ssd1306_draw_string(&ssd, str_ecg, index + 30 , 4);  
+        ssd1306_line(&ssd, index+46,14,index+50,4,cor);
+        //ssd1306_vline(&ssd,index + 46,2,16,cor);             // VARIAVEL ecg
+        ssd1306_draw_string(&ssd, str_ecg2, 107, 4);               // VARIAVEL ecg
+        ssd1306_rect(&ssd, 18, index, WIDTH - index, 63 - 18, cor, !cor); // caixa maior
 
-        ssd1306_line(&ssd, index+cont + 32, y2,index+cont + 37,(linha-y2)+linha , cor);
-        ssd1306_line(&ssd,index+cont + 37,(linha-y2)+linha,index+cont + 42,linha,cor);
+        // LINHA FIXA ANTERIOR
+        ssd1306_rect(&ssd, linha, index, cont, 1, cor, cor);
 
-        ssd1306_rect(&ssd, linha, index+cont + 42,127-(index+cont + 42), 1, cor, cor);
-       
+        // MEDIÇÃO 01
+        ssd1306_line(&ssd, index + cont, linha, index + cont + 5, y, cor);
+        ssd1306_line(&ssd, index + cont + 5, y, index + cont + 10, (linha - y) + linha, cor);
+        ssd1306_line(&ssd, index + cont + 10, (linha - y) + linha, index + cont + 15, linha, cor);
 
-       // EXIBIR VALORES PARA DEPURAÇÃO
-       printf("X: %d\n", x);
-       printf("Y: %d\n", y);
-       printf("ecg: %d\n", ecg);
-       printf("Y INVERT: %d\n", y_invert);
-       printf("cont: %d\n", cont);
-       printf("%d", y2);
+        // LINHA FIXA MEIO
+        ssd1306_rect(&ssd, linha, index + cont + 15, 12, 1, cor, cor);
 
-       // beep(BUZZER_A, tx_atualizacao/2);
+        // MEDIÇAÕ 02
+        ssd1306_line(&ssd, index + cont + 27, linha, index + cont + 32, y2, cor);
+        ssd1306_line(&ssd, index + cont + 32, y2, index + cont + 37, (linha - y2) + linha, cor);
+        ssd1306_line(&ssd, index + cont + 37, (linha - y2) + linha, index + cont + 42, linha, cor);
 
-       // CONTADOR PARA REINICIAR AO CHEGAR NO FINAL
-       cont=cont+3;
-       if (index+cont + 42 > WIDTH)
-       {
-           cont = 0;
-       }
-}
+        // LINHA FINAL
+        ssd1306_rect(&ssd, linha, index + cont + 42, 127 - (index + cont + 42), 1, cor, cor);
+
+        // EXIBIR VALORES PARA DEPURAÇÃO
+        printf("cont: %d\n", cont);
+        printf("X: %d\n", x);
+        printf("Y: %d\n", y);
+        printf("Y2: %d\n", y2);
+        printf("Y INVERT: %d\n", y_invert);
+        printf("ecg: %d\n", ecg);
+        printf("ecg2: %d\n", ecg2);
+        printf("Bpm: %d\n", bpm);
+
+        // beep(BUZZER_A, tx_atualizacao/2);
+
+        // CONTADOR PARA REINICIAR AO CHEGAR NO FINAL
+        cont = cont + 3;
+        if (index + cont + 42 > WIDTH)
+        {
+            cont = 0;
+        }
+    }
 }
