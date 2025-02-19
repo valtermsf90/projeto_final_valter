@@ -233,17 +233,8 @@ void tela(int modo)
 }
 void sysIrricacao()
 {
-   
-
+       
     
-    int temp = 46;
-    int umidadeSolo = 75;
-    int radiacao = 0;
-    int nv_tanque = 20;
-    bool abastecimento = false;
-    bool irrigacao = false;
-    bool sys_auto = false;
-    bool power_sys = false;
 
     gpio_set_dir(LED_R, GPIO_OUT);
     limpar_o_buffer();
@@ -346,7 +337,7 @@ void sysIrricacao()
         }
         if (sys_auto == true)
         {
-            if ((temp > 47) || (umidadeSolo < 60))
+            if ((temp > 45) || (umidadeSolo < 40))
             {
                 irrigacao = true;
                 abastecimento = false;
@@ -389,6 +380,7 @@ void sysIrricacao()
             if ((temp < 15) || (umidadeSolo > 90))
             {
                 irrigacao = false;
+                abastecimento = true;
             }
         }
     }
