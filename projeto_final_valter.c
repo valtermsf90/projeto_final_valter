@@ -242,6 +242,7 @@ void tela(int modo)
         // FIM LAYOUT-----------------------------------------------------------
         if (power_sys == false)
         {
+            apagado(0);
             sys_auto = power_sys;
             irrigacao = false;
             abastecimento = false;
@@ -273,7 +274,14 @@ void tela(int modo)
         }
         else
         {
+            amarelo(0);
+            piscar(cont,7);
+            
             sys_auto = status;
+            if(sys_auto == true){
+                verde(0);
+                piscar(cont,7);
+            }
             if ((irrigacao == false))
             {
                 if ((cont % 50 == 0) && (irrigacao == false))
@@ -291,6 +299,8 @@ void tela(int modo)
                 }
                 if (irrigacao == true)
                 {
+                    ciano(0);
+                    piscar(cont,7);
                     nv_tanque--;
                     temp = temp - (nv_tanque % 3);
                     if (temp < 5)
@@ -314,6 +324,8 @@ void tela(int modo)
                 }
                 if (abastecimento == true)
                 {
+                    azul(0);
+                    piscar(cont,7);
                     nv_tanque++;
                     if (nv_tanque == 99)
                     {
@@ -342,8 +354,7 @@ void tela(int modo)
         printf("abastecimento: %d\n", abastecimento);
         printf("sysAuto: %d\n", sys_auto);
         printf("PowerSys    : %d\n", power_sys);
-        printf("status: %d\n", status);
-    }
+        printf("status: %d\n", status);    }
     if (modo == 2)
     {
         limpar_o_buffer();
