@@ -210,7 +210,8 @@ void tela(int modo)
 {
     if (modo == 1)
     {
-
+       
+        gpio_set_dir(LED_R, GPIO_OUT);
         limpar_o_buffer();
         desenhar(matriz_1, 64);
         escrever_no_buffer();
