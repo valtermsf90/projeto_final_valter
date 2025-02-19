@@ -21,7 +21,8 @@ void config_display();
 static void interrupcao(uint gpio, uint32_t events);
 void tela(int modo);
 void desenhar(char desenho[5][5], int potencia);// VARIAVEIS
-
+// VARIAVEL GLOBAL
+int cont = 0;
 bool cor = true;
 bool st_bz_A = 0;
 bool st_bz_B = 0;
@@ -31,10 +32,10 @@ bool st_led_G = false;
 bool led_ON = false;
 bool status = false;
 bool status2 = true;
-int quadro = 1; //tela de inicio
+int quadro = 2; //tela de inicio
 int tx_atualizacao = 1000;
 static volatile uint32_t last_time = 0;
-// VARIAVEIS QUADRO 3
+// VARIAVEIS QUADRO 1
 int temp = 46;
 int umidadeSolo=75;
 int radiacao = 0;   
@@ -43,9 +44,9 @@ bool abastecimento = false;
 bool irrigacao = false;
 bool sys_auto = false;
 bool power_sys = true;
-// VARIAVEIS QUADRO 4
+
+// VARIAVEIS QUADRO 2
 bool obito = false;
-int cont = 0;
 int y = 0;
 int linha = 40;
 int coluna = 55;
@@ -63,12 +64,7 @@ char str_resp[5];
 int temp_C;
 char str_temp_C[5];
 //===================
-bool pulso(struct repeating_timer *t)
-{
-    gpio_put(LED_R, 1);
-    sleep_ms(60 / bpm * 500);
-    gpio_put(LED_R, 0);
-}
+
 
 // inicio
 int main()
@@ -118,6 +114,7 @@ int main()
         printf("TIMER: %d\n", tx_atualizacao);
         printf("TELA %d\n", quadro);
         printf("STATUS: %d\n", status);
+        printf("status_2: %d\n", status2);
         sleep_ms(tx_atualizacao);
         limpar_tela_serial();
     }
@@ -163,6 +160,7 @@ void interrupcao(uint gpio, uint32_t events)
              
             }// Ativa/desativa o PWM
             if(quadro == 4){
+                status2 = !status2;
             }
                          
             
@@ -177,13 +175,14 @@ void interrupcao(uint gpio, uint32_t events)
             }
             if(quadro == 2){
                 status = !status;  
-                
+                reset_usb_boot(0, 0);
             }
             if(quadro == 3){
             status = !status;               // Alterna entre ligado e desligado
             
             }// Ativa/desativa o PWM
             if(quadro == 4){
+                status = !status; 
                           // Alterna entre ligado e desligado
             pwm_set_enabled(LED_R, false); 
             }// Ativa/desativa o PWM
@@ -361,7 +360,8 @@ void tela(int modo)
         desenhar(matriz_2,64);
         escrever_no_buffer();
         adc_config();
-       
+        
+        cor = status2; 
        
         // VARIAVEIS
         // obtendo dados analogicos
@@ -397,6 +397,7 @@ void tela(int modo)
         {
             gpio_put(LED_G, 0);st_led_G = 0;
             gpio_put(LED_R, 0);st_led_R = 0;
+            gpio_put(LED_B, 0);st_led_B = 0;
             sleep_ms(100);
         }
         config_pwm_beep(BUZZER_B, 0, 2000);st_bz_B = 0;
@@ -440,49 +441,78 @@ void tela(int modo)
         //CAIXA MAIOR pA-----------------------------------------------------------------------+
         // LINHA FIXA ANTERIOR                                                      
         ssd1306_rect(&ssd, 18, coluna, WIDTH - coluna, 63 - 18, cor, !cor);                 
-        ssd1306_rect(&ssd, linha, coluna, cont, 1, cor, cor);                       
-        //  SE OBITO ---------------------------------------------------------------------------                                                        
-        if ((pA == 0) || (pA2 == 0) || (bpm == 0))                                 
-        {
+        ssd1306_rect(&ssd, linha, coluna, cont, 1, cor, cor);    
+        if(cor == true){                
+            //  SE OBITO ---------------------------------------------------------------------------                                                        
+            if ((pA == 0) || (pA2 == 0) || (bpm == 0))                                 
+            {
+    
+                // MEDIÇÃO 01
+                ssd1306_line(&ssd, coluna + cont, linha, coluna + cont + 5, linha, cor);
+                ssd1306_line(&ssd, coluna + cont + 5, linha, coluna + cont + 10, linha, cor);
+                ssd1306_line(&ssd, coluna + cont + 10, linha, coluna + cont + 15, linha, cor);
+    
+                // MEDIÇAÕ 02
+                ssd1306_line(&ssd, coluna + cont + 27, linha, coluna + cont + 32, linha, cor);
+                ssd1306_line(&ssd, coluna + cont + 32, linha, coluna + cont + 37, linha, cor);
+                ssd1306_line(&ssd, coluna + cont + 37, linha, coluna + cont + 42, linha, cor);
+                gpio_put(LED_R, 1);st_led_R = 1;
+                gpio_put(LED_G, 0);st_led_G = 0;
+                config_pwm_beep(BUZZER_A, 1, 2000);st_bz_A = 1;
+                config_pwm_beep(BUZZER_B, 1, 2000);st_bz_B = 1;
+                obito = true;
+    
+            } //-------------------------------------------------------------------------------------------------
+            else // NAO OBTIO------------------------------------------------------------------------------------
+            {
+    
+                obito = false;
+                gpio_put(LED_R, 0);st_led_R= 0;
+                gpio_put(LED_G, 1);st_led_G = 1;
+    
+                // MEDIÇÃO 01
+                ssd1306_line(&ssd, coluna + cont, linha, coluna + cont + 5, y, cor);
+                ssd1306_line(&ssd, coluna + cont + 5, y, coluna + cont + 10, (linha - y) + linha, cor);
+                ssd1306_line(&ssd, coluna + cont + 10, (linha - y) + linha, coluna + cont + 15, linha, cor);
+                // MEDIÇAÕ 02
+                ssd1306_line(&ssd, coluna + cont + 27, linha, coluna + cont + 32, y2, cor);
+                ssd1306_line(&ssd, coluna + cont + 32, y2, coluna + cont + 37, (linha - y2) + linha, cor);
+                ssd1306_line(&ssd, coluna + cont + 37, (linha - y2) + linha, coluna + cont + 42, linha, cor);
+            }
+            // LINHA FIXA MEIO
+            ssd1306_rect(&ssd, linha, coluna + cont + 15, 12, 1, cor, cor);
 
-            // MEDIÇÃO 01
-            ssd1306_line(&ssd, coluna + cont, linha, coluna + cont + 5, linha, cor);
-            ssd1306_line(&ssd, coluna + cont + 5, linha, coluna + cont + 10, linha, cor);
-            ssd1306_line(&ssd, coluna + cont + 10, linha, coluna + cont + 15, linha, cor);
+            // LINHA FINAL
+            ssd1306_rect(&ssd, linha, coluna + cont + 42, 127 - (coluna + cont + 42), 1, cor, cor);
 
-            // MEDIÇAÕ 02
-            ssd1306_line(&ssd, coluna + cont + 27, linha, coluna + cont + 32, linha, cor);
-            ssd1306_line(&ssd, coluna + cont + 32, linha, coluna + cont + 37, linha, cor);
-            ssd1306_line(&ssd, coluna + cont + 37, linha, coluna + cont + 42, linha, cor);
-            gpio_put(LED_R, 1);st_led_R = 1;
-            gpio_put(LED_G, 0);st_led_G = 0;
-            config_pwm_beep(BUZZER_A, 1, 2000);st_bz_A = 1;
-            config_pwm_beep(BUZZER_B, 1, 2000);st_bz_B = 1;
-            obito = true;
-
-        } //-------------------------------------------------------------------------------------------------
-        else // NAO OBTIO------------------------------------------------------------------------------------
-        {
-
-            obito = false;
-            gpio_put(LED_R, 0);st_led_R= 0;
-            gpio_put(LED_G, 1);st_led_G = 1;
-
-            // MEDIÇÃO 01
-            ssd1306_line(&ssd, coluna + cont, linha, coluna + cont + 5, y, cor);
-            ssd1306_line(&ssd, coluna + cont + 5, y, coluna + cont + 10, (linha - y) + linha, cor);
-            ssd1306_line(&ssd, coluna + cont + 10, (linha - y) + linha, coluna + cont + 15, linha, cor);
-            // MEDIÇAÕ 02
-            ssd1306_line(&ssd, coluna + cont + 27, linha, coluna + cont + 32, y2, cor);
-            ssd1306_line(&ssd, coluna + cont + 32, y2, coluna + cont + 37, (linha - y2) + linha, cor);
-            ssd1306_line(&ssd, coluna + cont + 37, (linha - y2) + linha, coluna + cont + 42, linha, cor);
+        }else{
+            //----------------------------------------------------------------------------------------------------
+            
+            ssd1306_rect(&ssd, 28,87,6,2,!cor,!cor);ssd1306_rect(&ssd, 28,99,6,2,!cor,!cor);                
+            ssd1306_rect(&ssd, 30,85,10,2,!cor,!cor);ssd1306_rect(&ssd, 30,97,10,2,!cor,!cor);
+            ssd1306_rect(&ssd, 32,83,26,8,!cor,!cor);
+            ssd1306_rect(&ssd, 40,85,22,2,!cor,!cor);
+            ssd1306_rect(&ssd, 42,87,18,2,!cor,!cor);
+            ssd1306_rect(&ssd, 44,89,14,2,!cor,!cor);
+            ssd1306_rect(&ssd, 46,91,10,2,!cor,!cor);
+            ssd1306_rect(&ssd, 48,93,6,2,!cor,!cor);
+            ssd1306_rect(&ssd, 50,95,2,2,!cor,!cor);
+            if ((pA == 0) || (pA2 == 0) || (bpm == 0))                                 
+            {
+                gpio_put(LED_R, 1);st_led_R = 1;
+                gpio_put(LED_B, 0);st_led_B = 0;
+                config_pwm_beep(BUZZER_A, 1, 2000);st_bz_A = 1;
+                config_pwm_beep(BUZZER_B, 1, 2000);st_bz_B = 1;
+                obito = true;
+            }else{
+                obito = false;
+                gpio_put(LED_R, 0);st_led_R= 0;
+                gpio_put(LED_B, 1);st_led_B = 1;
+            }
         }
-        // LINHA FIXA MEIO
-        ssd1306_rect(&ssd, linha, coluna + cont + 15, 12, 1, cor, cor);
 
-        // LINHA FINAL
-        ssd1306_rect(&ssd, linha, coluna + cont + 42, 127 - (coluna + cont + 42), 1, cor, cor);
-        //----------------------------------------------------------------------------------------------------
+
+
         // EXIBIR VALORES PARA DEPURAÇÃO----------------------------------------------------------------------
         printf("VARIAVEIS DA TELA\n");
         printf("cont: %d\n", cont);        
