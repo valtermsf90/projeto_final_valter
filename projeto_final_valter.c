@@ -134,9 +134,11 @@ void interrupcao(uint gpio, uint32_t events)
         // Verifica se o botão BT_J foi pressionado
         if (gpio == BT_J)
         {
+            pwm_set_gpio_level(LED_B, 0);
+            pwm_set_gpio_level(LED_R, 0);
             // Alterna o estado da variável led_ON
-            
             quadro++;
+            
             if (quadro > 4)
             {
                 quadro = 1;
@@ -170,7 +172,8 @@ void interrupcao(uint gpio, uint32_t events)
         if (gpio == BT_A)
         {
             if(quadro == 1){
-                status = !status;  
+                status = !status; 
+                
                 
             }
             if(quadro == 2){
@@ -184,15 +187,21 @@ void interrupcao(uint gpio, uint32_t events)
             if(quadro == 4){
                 status = !status; 
                           // Alterna entre ligado e desligado
-            pwm_set_enabled(LED_R, false); 
+             
             }// Ativa/desativa o PWM
         }
     }
 }
 void tela(int modo)
 {
-    if (modo == 1)
+    if (modo == 3)
     {
+        pwm_set_gpio_level(LED_B, 0);
+        pwm_set_gpio_level(LED_R, 0);
+  
+
+  
+       
         limpar_o_buffer();
         desenhar(matriz_1, 64);
         escrever_no_buffer();
@@ -532,7 +541,7 @@ void tela(int modo)
             cont = 0;
         }
     }
-    if (modo == 3) // OLHOS MOVENDO
+    if (modo == 1) // OLHOS MOVENDO
     {
         gpio_put(LED_G, 0);st_led_G= 0;
                 gpio_put(LED_B, 0);st_led_B= 0;
@@ -649,8 +658,8 @@ void tela(int modo)
         desenhar(matriz_4,64);
         escrever_no_buffer();
         gpio_init(LED_R);
-            config_pwm(LED_B, status);
-            config_pwm(LED_R, status);
+            config_pwm(LED_B, status2);
+            config_pwm(LED_R, status2);
             config_pwm_beep(BUZZER_A,status, 5000);
             config_pwm_beep(BUZZER_B,status, 2000);
             gpio_put(LED_G, status); st_led_G = status;
@@ -658,7 +667,7 @@ void tela(int modo)
                 // Controla o brilho do LED vermelho com base no eixo X
             if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
             {
-                pwm_set_gpio_level(LED_R, eixo_x_valor);st_led_R= status;
+                pwm_set_gpio_level(LED_R, eixo_x_valor);st_led_R= status2;
                 pwm_set_gpio_level(BUZZER_A, eixo_x_valor);st_bz_A = status;
             }
             else
@@ -670,7 +679,7 @@ void tela(int modo)
             // Controla o brilho do LED azul com base no eixo Y
             if ((eixo_y_valor < 1500) || (eixo_y_valor > 2200))
             {
-                pwm_set_gpio_level(LED_B, eixo_y_valor);st_led_B= status;
+                pwm_set_gpio_level(LED_B, eixo_y_valor);st_led_B= status2;
                 pwm_set_gpio_level(BUZZER_B, eixo_y_valor);st_bz_B = status;
             }
             else
