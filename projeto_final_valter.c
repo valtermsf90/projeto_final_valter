@@ -48,7 +48,7 @@ int nv_tanque = 20;
 bool abastecimento = false;
 bool irrigacao = false;
 bool sys_auto = false;
-bool power_sys = true;
+bool power_sys = false;
 
 // VARIAVEIS QUADRO 02
 bool B2 = false;
@@ -209,12 +209,7 @@ void tela(int modo)
 {
     if (modo == 1)
     {
-        pwm_set_gpio_level(LED_B, 0);
-        pwm_set_gpio_level(LED_R, 0);
-  
-
-  
-       
+        
         limpar_o_buffer();
         desenhar(matriz_1, 64);
         escrever_no_buffer();
@@ -222,7 +217,7 @@ void tela(int modo)
         const int TEMP_MAX = 40;
         const int UMID_MIN = 50;
         const int UV = 70;
-        power_sys = status2;
+        power_sys = A1;
         tx_atualizacao = 5;
        
         radiacao = temp * 2;
@@ -242,24 +237,24 @@ void tela(int modo)
         ssd1306_draw_string(&ssd, str_temp, 70, 12);
         ssd1306_draw_string(&ssd, "RAIO UV", 2, 22);
         ssd1306_draw_string(&ssd, str_radiacao, 70, 22);
-        ssd1306_vline(&ssd, 87, 0, HEIGHT - 33, A1);
+        ssd1306_vline(&ssd, 87, 0, HEIGHT - 33, cor);
 
         ssd1306_draw_string(&ssd, "PWR", 89, 2);
         ssd1306_draw_string(&ssd, "IRR", 89, 12);
         ssd1306_draw_string(&ssd, "ABS", 89, 22);
-        ssd1306_rect(&ssd, 2, WIDTH - 10, 8, 8, A1, power_sys);
-        ssd1306_rect(&ssd, 12, WIDTH - 10, 8, 8, A1, irrigacao);
-        ssd1306_rect(&ssd, 22, WIDTH - 10, 8, 8, A1, abastecimento);
+        ssd1306_rect(&ssd, 2, WIDTH - 10, 8, 8, cor, power_sys);
+        ssd1306_rect(&ssd, 12, WIDTH - 10, 8, 8, cor, irrigacao);
+        ssd1306_rect(&ssd, 22, WIDTH - 10, 8, 8, cor, abastecimento);
 
-        ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 33, A1);
+        ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 33, cor);
         ssd1306_draw_string(&ssd, "System Auto", 2, HEIGHT - 31);
-        ssd1306_rect(&ssd, HEIGHT - 31, WIDTH - 10, 8, 8, A1, sys_auto); // alterar botao A
-        ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 22, A1);
+        ssd1306_rect(&ssd, HEIGHT - 31, WIDTH - 10, 8, 8, cor, sys_auto); // alterar botao A
+        ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 22, cor);
         ssd1306_draw_string(&ssd, "NIVEL TANQUE", 12, HEIGHT - 20);
         ssd1306_draw_char(&ssd, '0', 1, HEIGHT - 10);
-        ssd1306_rect(&ssd, HEIGHT - 10, 9, nv_tanque, 8, A1, A1);
+        ssd1306_rect(&ssd, HEIGHT - 10, 9, nv_tanque, 8, cor, cor);
         ssd1306_draw_string(&ssd, str_nv_tanque, 12 + nv_tanque, HEIGHT - 10);
-        ssd1306_rect(&ssd, 0, 0, WIDTH, HEIGHT, A1, !A1);
+        ssd1306_rect(&ssd, 0, 0, WIDTH, HEIGHT, cor, !cor);
         // FIM LAYOUT-----------------------------------------------------------
         if (power_sys == false)
         {
@@ -298,7 +293,7 @@ void tela(int modo)
             amarelo(0);
             piscar(cont,7);
             
-            sys_auto = status;
+            sys_auto = B1;
             if(sys_auto == true){
                 verde(0);
                 piscar(cont,7);
