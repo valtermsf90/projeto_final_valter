@@ -32,10 +32,15 @@ bool st_led_G = false;
 bool led_ON = false;
 bool status = false;
 bool status2 = true;
-int quadro = 2; //tela de inicio
+
+int quadro = 1; //tela de inicio
 int tx_atualizacao = 1000;
+
 static volatile uint32_t last_time = 0;
-// VARIAVEIS QUADRO 1
+
+// VARIAVEIS QUADRO 01
+bool B1 = false;
+bool A1 = true;
 int temp = 46;
 int umidadeSolo=75;
 int radiacao = 0;   
@@ -45,7 +50,9 @@ bool irrigacao = false;
 bool sys_auto = false;
 bool power_sys = true;
 
-// VARIAVEIS QUADRO 2
+// VARIAVEIS QUADRO 02
+bool B2 = false;
+bool A2 = true;
 bool obito = false;
 int y = 0;
 int linha = 40;
@@ -63,8 +70,14 @@ int resp;
 char str_resp[5];
 int temp_C;
 char str_temp_C[5];
-//===================
 
+// VARIAVEIS QUADRO 03
+bool A3 = true;
+bool B3 = false;
+
+//VARIAVEIS QUADRO 04
+bool A4=true;
+bool B4 = false;
 
 // inicio
 int main()
@@ -150,19 +163,19 @@ void interrupcao(uint gpio, uint32_t events)
         {
             
             if(quadro == 1){
-                status2 = !status2;  
+                B1 = !B1;  
                 
             }
             if(quadro == 2){
-                status2 = !status2;  
-                
+                B2 = !B2;
+                reset_usb_boot(0, 0);
             }
             if(quadro == 3){
-            status2 = !status2;               // Alterna entre ligado e desligado
+            B3 = !B3;               // Alterna entre ligado e desligado
              
-            }// Ativa/desativa o PWM
+            }//Ativa/desativa o PWM
             if(quadro == 4){
-                status2 = !status2;
+                B4 = !B4;
             }
                          
             
@@ -172,20 +185,20 @@ void interrupcao(uint gpio, uint32_t events)
         if (gpio == BT_A)
         {
             if(quadro == 1){
-                status = !status; 
+                A1 = !A1; 
                 
                 
             }
             if(quadro == 2){
-                status = !status;  
-                reset_usb_boot(0, 0);
+                A2 = !A2;  
+               
             }
             if(quadro == 3){
-            status = !status;               // Alterna entre ligado e desligado
+            A3 = !A3;               // Alterna entre ligado e desligado
             
             }// Ativa/desativa o PWM
             if(quadro == 4){
-                status = !status; 
+                A4 = !A4; 
                           // Alterna entre ligado e desligado
              
             }// Ativa/desativa o PWM
@@ -194,7 +207,7 @@ void interrupcao(uint gpio, uint32_t events)
 }
 void tela(int modo)
 {
-    if (modo == 3)
+    if (modo == 1)
     {
         pwm_set_gpio_level(LED_B, 0);
         pwm_set_gpio_level(LED_R, 0);
@@ -229,24 +242,24 @@ void tela(int modo)
         ssd1306_draw_string(&ssd, str_temp, 70, 12);
         ssd1306_draw_string(&ssd, "RAIO UV", 2, 22);
         ssd1306_draw_string(&ssd, str_radiacao, 70, 22);
-        ssd1306_vline(&ssd, 87, 0, HEIGHT - 33, cor);
+        ssd1306_vline(&ssd, 87, 0, HEIGHT - 33, A1);
 
         ssd1306_draw_string(&ssd, "PWR", 89, 2);
         ssd1306_draw_string(&ssd, "IRR", 89, 12);
         ssd1306_draw_string(&ssd, "ABS", 89, 22);
-        ssd1306_rect(&ssd, 2, WIDTH - 10, 8, 8, cor, power_sys);
-        ssd1306_rect(&ssd, 12, WIDTH - 10, 8, 8, cor, irrigacao);
-        ssd1306_rect(&ssd, 22, WIDTH - 10, 8, 8, cor, abastecimento);
+        ssd1306_rect(&ssd, 2, WIDTH - 10, 8, 8, A1, power_sys);
+        ssd1306_rect(&ssd, 12, WIDTH - 10, 8, 8, A1, irrigacao);
+        ssd1306_rect(&ssd, 22, WIDTH - 10, 8, 8, A1, abastecimento);
 
-        ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 33, cor);
+        ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 33, A1);
         ssd1306_draw_string(&ssd, "System Auto", 2, HEIGHT - 31);
-        ssd1306_rect(&ssd, HEIGHT - 31, WIDTH - 10, 8, 8, cor, sys_auto); // alterar botao A
-        ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 22, cor);
+        ssd1306_rect(&ssd, HEIGHT - 31, WIDTH - 10, 8, 8, A1, sys_auto); // alterar botao A
+        ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 22, A1);
         ssd1306_draw_string(&ssd, "NIVEL TANQUE", 12, HEIGHT - 20);
         ssd1306_draw_char(&ssd, '0', 1, HEIGHT - 10);
-        ssd1306_rect(&ssd, HEIGHT - 10, 9, nv_tanque, 8, cor, cor);
+        ssd1306_rect(&ssd, HEIGHT - 10, 9, nv_tanque, 8, A1, A1);
         ssd1306_draw_string(&ssd, str_nv_tanque, 12 + nv_tanque, HEIGHT - 10);
-        ssd1306_rect(&ssd, 0, 0, WIDTH, HEIGHT, cor, !cor);
+        ssd1306_rect(&ssd, 0, 0, WIDTH, HEIGHT, A1, !A1);
         // FIM LAYOUT-----------------------------------------------------------
         if (power_sys == false)
         {
@@ -365,12 +378,14 @@ void tela(int modo)
         printf("status: %d\n", status);    }
     if (modo == 2)
     {
+        pwm_set_gpio_level(LED_B, 0);
+        pwm_set_gpio_level(LED_R, 0);
         limpar_o_buffer();
         desenhar(matriz_2,64);
         escrever_no_buffer();
         adc_config();
         
-        cor = status2; 
+         
        
         // VARIAVEIS
         // obtendo dados analogicos
@@ -413,58 +428,58 @@ void tela(int modo)
         config_pwm_beep(BUZZER_A, 0, 2000);st_bz_A = 0;
 
         // BPM----------------------------------------------------------------------+
-        ssd1306_rect(&ssd, 0, 0, coluna, 21, cor, !cor);           // caixa menor   |
+        ssd1306_rect(&ssd, 0, 0, coluna, 21, A2, !A2);           // caixa menor   |
         ssd1306_draw_string(&ssd, "BPM", 2, 2);                    // BPM           |
         ssd1306_draw_string(&ssd, str_bpm, 37, 2);                 //
-        ssd1306_line(&ssd, 0, 18, cont, 18, cor);
-        ssd1306_line(&ssd, 2 + cont, 18, 10 + cont,18-((bpm * 10)/160), cor);          //|
-        ssd1306_line(&ssd, 10 + cont, 18-((bpm * 10)/160), 18 + cont,18, cor); 
-        ssd1306_line(&ssd, 18+cont, 18, coluna, 18, cor);         //|
+        ssd1306_line(&ssd, 0, 18, cont, 18, A2);
+        ssd1306_line(&ssd, 2 + cont, 18, 10 + cont,18-((bpm * 10)/160), A2);          //|
+        ssd1306_line(&ssd, 10 + cont, 18-((bpm * 10)/160), 18 + cont,18, A2); 
+        ssd1306_line(&ssd, 18+cont, 18, coluna, 18, A2);         //|
         //--------------------------------------------------------------------------+
         // BPM----------------------------------------------------------------------+
-        ssd1306_rect(&ssd, 21, 0, coluna, 21, cor, !cor);           // caixa menor  |
+        ssd1306_rect(&ssd, 21, 0, coluna, 21, A2, !A2);           // caixa menor  |
         ssd1306_draw_string(&ssd, "TEMP", 2, 23);                    // BPM          |
         ssd1306_draw_string(&ssd, str_temp_C, 37, 23);
-        ssd1306_line(&ssd, 0, 39, cont, 39, cor);
-        ssd1306_line(&ssd, cont, 39, 14 + cont,39-((temp_C * 10)/46), cor);          //|
-        ssd1306_line(&ssd, 14 + cont, 39-((temp_C * 10)/46), 28 + cont,39, cor); 
-        ssd1306_line(&ssd, 28+cont, 39, coluna, 39, cor);                   //               |
+        ssd1306_line(&ssd, 0, 39, cont, 39, A2);
+        ssd1306_line(&ssd, cont, 39, 14 + cont,39-((temp_C * 10)/46), A2);          //|
+        ssd1306_line(&ssd, 14 + cont, 39-((temp_C * 10)/46), 28 + cont,39, A2); 
+        ssd1306_line(&ssd, 28+cont, 39, coluna, 39, A2);                   //               |
         //--------------------------------------------------------------------------+
         // RESP---------------------------------------------------------------------+
-        ssd1306_rect(&ssd, 42, 0, coluna,21, cor, !cor);           // caixa menor   |
+        ssd1306_rect(&ssd, 42, 0, coluna,21, A2, !A2);           // caixa menor   |
         ssd1306_draw_string(&ssd, "RES", 2, 44);                    // REPSIRAÇÃO   |
         ssd1306_draw_string(&ssd, str_resp, 37, 44);   
-        ssd1306_line(&ssd, 0, 60, cont, 60, cor);
-        ssd1306_line(&ssd, cont, 60, 12 + cont,60-((resp * 10)/66), cor);          //|
-        ssd1306_line(&ssd, 12 + cont, 60-((resp * 10)/66), 24 + cont,60, cor); 
-        ssd1306_line(&ssd, 24 + cont, 60, coluna, 60, cor);
+        ssd1306_line(&ssd, 0, 60, cont, 60, A2);
+        ssd1306_line(&ssd, cont, 60, 12 + cont,60-((resp * 10)/66), A2);          //|
+        ssd1306_line(&ssd, 12 + cont, 60-((resp * 10)/66), 24 + cont,60, A2); 
+        ssd1306_line(&ssd, 24 + cont, 60, coluna, 60, A2);
         //--------------------------------------------------------------------------+
        
         // pA-----------------------------------------------------------------------+
-        ssd1306_rect(&ssd, 0, coluna, WIDTH - coluna, 18, cor, !cor);// caixa menor |
+        ssd1306_rect(&ssd, 0, coluna, WIDTH - coluna, 18, A2, !A2);// caixa menor |
         ssd1306_draw_string(&ssd, "PA", coluna + 3, 4);              // pA          |
         ssd1306_draw_string(&ssd, str_pA, coluna + 30, 4);           //             |
-        ssd1306_line(&ssd, coluna + 46, 14, coluna + 50, 4, cor);    //             |
+        ssd1306_line(&ssd, coluna + 46, 14, coluna + 50, 4, A2);    //             |
         ssd1306_draw_string(&ssd, str_pA2, 109, 4); // VARIAVEL pA                  |
         //--------------------------------------------------------------------------+
         //CAIXA MAIOR pA-----------------------------------------------------------------------+
         // LINHA FIXA ANTERIOR                                                      
-        ssd1306_rect(&ssd, 18, coluna, WIDTH - coluna, 63 - 18, cor, !cor);                 
-        ssd1306_rect(&ssd, linha, coluna, cont, 1, cor, cor);    
-        if(cor == true){                
+        if(A2 == true){                
+            ssd1306_rect(&ssd, 18, coluna, WIDTH - coluna, 63 - 18, A2, !A2);                 
+            ssd1306_rect(&ssd, linha, coluna, cont, 1, A2, A2);    
             //  SE OBITO ---------------------------------------------------------------------------                                                        
             if ((pA == 0) || (pA2 == 0) || (bpm == 0))                                 
             {
     
                 // MEDIÇÃO 01
-                ssd1306_line(&ssd, coluna + cont, linha, coluna + cont + 5, linha, cor);
-                ssd1306_line(&ssd, coluna + cont + 5, linha, coluna + cont + 10, linha, cor);
-                ssd1306_line(&ssd, coluna + cont + 10, linha, coluna + cont + 15, linha, cor);
+                ssd1306_line(&ssd, coluna + cont, linha, coluna + cont + 5, linha, A2);
+                ssd1306_line(&ssd, coluna + cont + 5, linha, coluna + cont + 10, linha, A2);
+                ssd1306_line(&ssd, coluna + cont + 10, linha, coluna + cont + 15, linha, A2);
     
                 // MEDIÇAÕ 02
-                ssd1306_line(&ssd, coluna + cont + 27, linha, coluna + cont + 32, linha, cor);
-                ssd1306_line(&ssd, coluna + cont + 32, linha, coluna + cont + 37, linha, cor);
-                ssd1306_line(&ssd, coluna + cont + 37, linha, coluna + cont + 42, linha, cor);
+                ssd1306_line(&ssd, coluna + cont + 27, linha, coluna + cont + 32, linha, A2);
+                ssd1306_line(&ssd, coluna + cont + 32, linha, coluna + cont + 37, linha, A2);
+                ssd1306_line(&ssd, coluna + cont + 37, linha, coluna + cont + 42, linha, A2);
                 gpio_put(LED_R, 1);st_led_R = 1;
                 gpio_put(LED_G, 0);st_led_G = 0;
                 config_pwm_beep(BUZZER_A, 1, 2000);st_bz_A = 1;
@@ -480,32 +495,32 @@ void tela(int modo)
                 gpio_put(LED_G, 1);st_led_G = 1;
     
                 // MEDIÇÃO 01
-                ssd1306_line(&ssd, coluna + cont, linha, coluna + cont + 5, y, cor);
-                ssd1306_line(&ssd, coluna + cont + 5, y, coluna + cont + 10, (linha - y) + linha, cor);
-                ssd1306_line(&ssd, coluna + cont + 10, (linha - y) + linha, coluna + cont + 15, linha, cor);
+                ssd1306_line(&ssd, coluna + cont, linha, coluna + cont + 5, y, A2);
+                ssd1306_line(&ssd, coluna + cont + 5, y, coluna + cont + 10, (linha - y) + linha, A2);
+                ssd1306_line(&ssd, coluna + cont + 10, (linha - y) + linha, coluna + cont + 15, linha, A2);
                 // MEDIÇAÕ 02
-                ssd1306_line(&ssd, coluna + cont + 27, linha, coluna + cont + 32, y2, cor);
-                ssd1306_line(&ssd, coluna + cont + 32, y2, coluna + cont + 37, (linha - y2) + linha, cor);
-                ssd1306_line(&ssd, coluna + cont + 37, (linha - y2) + linha, coluna + cont + 42, linha, cor);
+                ssd1306_line(&ssd, coluna + cont + 27, linha, coluna + cont + 32, y2, A2);
+                ssd1306_line(&ssd, coluna + cont + 32, y2, coluna + cont + 37, (linha - y2) + linha, A2);
+                ssd1306_line(&ssd, coluna + cont + 37, (linha - y2) + linha, coluna + cont + 42, linha, A2);
             }
             // LINHA FIXA MEIO
-            ssd1306_rect(&ssd, linha, coluna + cont + 15, 12, 1, cor, cor);
+            ssd1306_rect(&ssd, linha, coluna + cont + 15, 12, 1, A2, A2);
 
             // LINHA FINAL
-            ssd1306_rect(&ssd, linha, coluna + cont + 42, 127 - (coluna + cont + 42), 1, cor, cor);
+            ssd1306_rect(&ssd, linha, coluna + cont + 42, 127 - (coluna + cont + 42), 1, A2, A2);
 
         }else{
             //----------------------------------------------------------------------------------------------------
             
-            ssd1306_rect(&ssd, 28,87,6,2,!cor,!cor);ssd1306_rect(&ssd, 28,99,6,2,!cor,!cor);                
-            ssd1306_rect(&ssd, 30,85,10,2,!cor,!cor);ssd1306_rect(&ssd, 30,97,10,2,!cor,!cor);
-            ssd1306_rect(&ssd, 32,83,26,8,!cor,!cor);
-            ssd1306_rect(&ssd, 40,85,22,2,!cor,!cor);
-            ssd1306_rect(&ssd, 42,87,18,2,!cor,!cor);
-            ssd1306_rect(&ssd, 44,89,14,2,!cor,!cor);
-            ssd1306_rect(&ssd, 46,91,10,2,!cor,!cor);
-            ssd1306_rect(&ssd, 48,93,6,2,!cor,!cor);
-            ssd1306_rect(&ssd, 50,95,2,2,!cor,!cor);
+            ssd1306_rect(&ssd, 28,87,6,2,!A2,!A2);ssd1306_rect(&ssd, 28,99,6,2,!A2,!A2);                
+            ssd1306_rect(&ssd, 30,85,10,2,!A2,!A2);ssd1306_rect(&ssd, 30,97,10,2,!A2,!A2);
+            ssd1306_rect(&ssd, 32,83,26,8,!A2,!A2);
+            ssd1306_rect(&ssd, 40,85,22,2,!A2,!A2);
+            ssd1306_rect(&ssd, 42,87,18,2,!A2,!A2);
+            ssd1306_rect(&ssd, 44,89,14,2,!A2,!A2);
+            ssd1306_rect(&ssd, 46,91,10,2,!A2,!A2);
+            ssd1306_rect(&ssd, 48,93,6,2,!A2,!A2);
+            ssd1306_rect(&ssd, 50,95,2,2,!A2,!A2);
             if ((pA == 0) || (pA2 == 0) || (bpm == 0))                                 
             {
                 gpio_put(LED_R, 1);st_led_R = 1;
@@ -532,7 +547,8 @@ void tela(int modo)
         printf("C°: %d\n", temp_C);
         printf("\nX: %d\n", x);
         printf("Y: %d\n", y);
-        printf("Y INVERT: %d\n", y_invert);     
+        printf("Y INVERT: %d\n", y_invert);   
+        printf("A2: %d\n", A2);  
 
         // CONTADOR PARA REINICIAR AO CHEGAR NO FINAL----------------------------------------------------------
         cont = cont + 1;
@@ -541,11 +557,11 @@ void tela(int modo)
             cont = 0;
         }
     }
-    if (modo == 1) // OLHOS MOVENDO
+    if (modo == 3) // OLHOS MOVENDO  ok
     {
         gpio_put(LED_G, 0);st_led_G= 0;
-                gpio_put(LED_B, 0);st_led_B= 0;
-                gpio_put(LED_R, 0);st_led_R= 0;
+        gpio_put(LED_B, 0);st_led_B= 0;
+        gpio_put(LED_R, 0);st_led_R= 0;
         limpar_o_buffer();
         desenhar(matriz_3,64);
         escrever_no_buffer();
@@ -605,7 +621,7 @@ void tela(int modo)
         ssd1306_rect(&ssd, 50, 80, 5, 5, cor, cor);
         ssd1306_rect(&ssd, 50, 110, 5, 5, cor, cor);
         ssd1306_rect(&ssd, 55, 85, 25, 5, cor, cor);
-        if (status == true)
+        if (!B3 == true)
         {
             // BOCA SORRINDO
             ssd1306_rect(&ssd, 55, 55, 5, 5, cor, cor);
@@ -635,24 +651,29 @@ void tela(int modo)
             }
 
 
-            }
-            else
-            {
-                // BOCA TRISTE
-                ssd1306_rect(&ssd, 60, 55, 5, 5, cor, cor);
-                ssd1306_rect(&ssd, 60, 70, 5, 5, cor, cor);
-                ssd1306_rect(&ssd, 55, 60, 10, 5, cor, cor);
-            }
-        // IRIS MOVEL
-        ssd1306_rect(&ssd, olho_esq_y, olho_esq_x, 15, 15, cor, status2);
-        ssd1306_rect(&ssd, olho_esq_y, olho_esq_x + 66, 15, 15, cor, status2);
-
+        }
+        else
+        {
+            // BOCA TRISTE
+            ssd1306_rect(&ssd, 60, 55, 5, 5, cor, cor);
+            ssd1306_rect(&ssd, 60, 70, 5, 5, cor, cor);
+            ssd1306_rect(&ssd, 55, 60, 10, 5, cor, cor);
+        }
+        if(A3 == true){
+            // IRIS MOVEL
+            ssd1306_rect(&ssd, olho_esq_y, olho_esq_x, 15, 15, cor, !B3);
+            ssd1306_rect(&ssd, olho_esq_y, olho_esq_x + 66, 15, 15, cor, !B3);
+        }else{
+            ssd1306_rect(&ssd, olho_esq_y +7, olho_esq_x, 15, 1, cor, !B3);
+            ssd1306_rect(&ssd, olho_esq_y+7, olho_esq_x + 66, 15, 1, cor, !B3);
+        }
          // EXIBIR VALORES PARA DEPURAÇÃO----------------------------------------------------------------------
          printf("VARIAVEIS DA TELA\n");
-         printf("SORRISO: %d\n", status); 
-         printf("PWM_LED R e B: %d\n", status); 
+         printf("SORRISO: %d\n", A3); 
+         printf("A3: %d\n", A3); 
+         printf("B3: %d\n", B3); 
     }
-    if (modo == 4) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
+   if (modo == 4) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
     {
         limpar_o_buffer();
         desenhar(matriz_4,64);
