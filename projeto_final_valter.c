@@ -31,7 +31,7 @@ bool st_led_G = false;
 bool led_ON = false;
 bool status = false;
 bool status2 = true;
-int quadro = 3; //tela de inicio
+int quadro = 1; //tela de inicio
 int tx_atualizacao = 1000;
 static volatile uint32_t last_time = 0;
 // VARIAVEIS QUADRO 3
@@ -191,191 +191,10 @@ void interrupcao(uint gpio, uint32_t events)
 }
 void tela(int modo)
 {
-    if (modo == 1) // OLHOS MOVENDO
-    {
-        gpio_put(LED_G, 0);st_led_G= 0;
-                gpio_put(LED_B, 0);st_led_B= 0;
-                gpio_put(LED_R, 0);st_led_R= 0;
-        limpar_o_buffer();
-        desenhar(matriz_1,64);
-        escrever_no_buffer();
-        // VARIAVEIS
-        tx_atualizacao = 10;
-       
-        int olho_esq_x;
-        signed int olho_esq_y;
-
-        // Calcula a posição X a partir do valor do eixo X
-        olho_esq_x = (eixo_x_valor / 31.2) - 32;
-
-        // Calcula a posição Y invertendo o eixo (porque a tela cresce para baixo)
-        olho_esq_y = (60 - (eixo_y_valor / 70.2) - 8);
-
-        if (olho_esq_x > 37) // Limita a posição máxima em X
-        {
-            olho_esq_x = 37;
-        }
-        if (olho_esq_x < 13) // Limita a posição mínima em X
-        {
-            olho_esq_x = 13;
-        }
-
-        if (olho_esq_y > 37) // Limita a posição máxima em Y
-        {
-            olho_esq_y = 37;
-        }
-        if (olho_esq_y < 13) // Limita a posição mínima em Y
-        {
-            olho_esq_y = 13;
-        }
-        // olho esquerdo
-        ssd1306_rect(&ssd, 5, 20, 25, 5, cor, cor);
-        ssd1306_rect(&ssd, 10, 15, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 10, 45, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 15, 10, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 15, 50, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 20, 5, 5, 25, cor, cor);
-        ssd1306_rect(&ssd, 20, 55, 5, 25, cor, cor);
-        ssd1306_rect(&ssd, 45, 10, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 45, 50, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 50, 15, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 50, 45, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 55, 20, 25, 5, cor, cor);
-
-        // olho direito
-        ssd1306_rect(&ssd, 5, 85, 25, 5, cor, cor);
-        ssd1306_rect(&ssd, 10, 80, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 10, 110, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 45, 75, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 45, 115, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 20, 70, 5, 25, cor, cor);
-        ssd1306_rect(&ssd, 20, 120, 5, 25, cor, cor);
-        ssd1306_rect(&ssd, 15, 75, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 15, 115, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 50, 80, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 50, 110, 5, 5, cor, cor);
-        ssd1306_rect(&ssd, 55, 85, 25, 5, cor, cor);
-        if (status == true)
-        {
-            // BOCA SORRINDO
-            ssd1306_rect(&ssd, 55, 55, 5, 5, cor, cor);
-            ssd1306_rect(&ssd, 55, 70, 5, 5, cor, cor);
-            ssd1306_rect(&ssd, 60, 60, 10, 5, cor, cor);
-            config_pwm(LED_B, status);
-            config_pwm(LED_R, status);
-
-                // Controla o brilho do LED vermelho com base no eixo X
-            if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
-            {
-                pwm_set_gpio_level(LED_R, eixo_x_valor);st_led_R= 1;
-            }
-            else
-            {
-                pwm_set_gpio_level(LED_R, 0);st_led_R= 0;
-            }
-
-            // Controla o brilho do LED azul com base no eixo Y
-            if ((eixo_y_valor < 1500) || (eixo_y_valor > 2200))
-            {
-                pwm_set_gpio_level(LED_B, eixo_y_valor);st_led_B= 1;
-            }
-            else
-            {
-                pwm_set_gpio_level(LED_B, 0);st_led_B= 0;
-            }
-
-
-            }
-            else
-            {
-                // BOCA TRISTE
-                ssd1306_rect(&ssd, 60, 55, 5, 5, cor, cor);
-                ssd1306_rect(&ssd, 60, 70, 5, 5, cor, cor);
-                ssd1306_rect(&ssd, 55, 60, 10, 5, cor, cor);
-            }
-        // IRIS MOVEL
-        ssd1306_rect(&ssd, olho_esq_y, olho_esq_x, 15, 15, cor, status);
-        ssd1306_rect(&ssd, olho_esq_y, olho_esq_x + 66, 15, 15, cor, status);
-
-         // EXIBIR VALORES PARA DEPURAÇÃO----------------------------------------------------------------------
-         printf("VARIAVEIS DA TELA\n");
-         printf("SORRISO: %d\n", status); 
-         printf("PWM_LED R e B: %d\n", status); 
-    }
-    
-    if (modo == 2) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
+    if (modo == 1)
     {
         limpar_o_buffer();
-        desenhar(matriz_2,64);
-        escrever_no_buffer();
-        gpio_init(LED_R);
-            config_pwm(LED_B, status);
-            config_pwm(LED_R, status);
-            config_pwm_beep(BUZZER_A,status, 5000);
-            config_pwm_beep(BUZZER_B,status, 2000);
-            gpio_put(LED_G, status); st_led_G = status;
-
-                // Controla o brilho do LED vermelho com base no eixo X
-            if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
-            {
-                pwm_set_gpio_level(LED_R, eixo_x_valor);st_led_R= status;
-                pwm_set_gpio_level(BUZZER_A, eixo_x_valor);st_bz_A = status;
-            }
-            else
-            {
-                pwm_set_gpio_level(LED_R, 0);st_led_R= 0;
-                pwm_set_gpio_level(BUZZER_A, 0);st_bz_A = 0;
-            }
-            
-            // Controla o brilho do LED azul com base no eixo Y
-            if ((eixo_y_valor < 1500) || (eixo_y_valor > 2200))
-            {
-                pwm_set_gpio_level(LED_B, eixo_y_valor);st_led_B= status;
-                pwm_set_gpio_level(BUZZER_B, eixo_y_valor);st_bz_B = status;
-            }
-            else
-            {
-                pwm_set_gpio_level(LED_B, 0);st_led_B= 0;
-                pwm_set_gpio_level(BUZZER_B, 0);st_bz_B = 0;
-            }
-
-        tx_atualizacao = 200;
-
-        ssd1306_rect(&ssd, 0, 0, 127, 63, cor, !cor);
-
-        ssd1306_draw_string(&ssd, "LEDS", 3, 3);
-        ssd1306_draw_string(&ssd, "R", 63, 3);
-        ssd1306_draw_string(&ssd, "G", 83, 3);
-        ssd1306_draw_string(&ssd, "B", 103, 3);
-        ssd1306_draw_string(&ssd, "STATUS", 3, 13);
-        ssd1306_draw_string(&ssd, "BUZZERS", 3, 23);
-        ssd1306_rect(&ssd, 13, 63, 8, 8, cor, st_led_R);
-        ssd1306_rect(&ssd, 13, 83, 8, 8, cor, gpio_get(LED_G));
-        ssd1306_rect(&ssd, 13, 103, 8, 8, cor, st_led_B);
-        ssd1306_draw_string(&ssd, "A", 63, 23);
-        ssd1306_rect(&ssd, 23, 78, 8, 8, cor, st_bz_A);
-        ssd1306_draw_string(&ssd, "A", 93, 23);
-        ssd1306_rect(&ssd, 23, 108, 8, 8, cor, st_bz_B);
-
-        ssd1306_rect(&ssd, 31, 1, 96, 32, cor, !cor);
-        ssd1306_draw_string(&ssd, "MIC", 3, 33);
-        ssd1306_draw_string(&ssd, str_mic, 63, 33);
-        ssd1306_draw_string(&ssd, "EIXO X", 3, 43);
-        ssd1306_draw_string(&ssd, str_x, 63, 43);
-        ssd1306_draw_string(&ssd, "EIXO Y", 3, 53);
-        ssd1306_draw_string(&ssd, str_y, 63, 53);
-
-        ssd1306_rect(&ssd, 31, 96, 31, 32, cor, !cor);
-        ssd1306_draw_string(&ssd, " BT", 97, 33);
-        ssd1306_draw_string(&ssd, "A", 99, 43);
-        ssd1306_rect(&ssd, 43, 110, 8, 8, cor, !gpio_get(BT_A));
-        ssd1306_draw_string(&ssd, "J", 98, 53);
-        ssd1306_rect(&ssd, 53, 110, 8, 8, cor, !gpio_get(BT_J));
-    }
-    if (modo == 3)
-    {
-        limpar_o_buffer();
-        desenhar(matriz_3, 64);
+        desenhar(matriz_1, 64);
         escrever_no_buffer();
         // VARIAVEIS
         const int TEMP_MAX = 40;
@@ -488,7 +307,7 @@ void tela(int modo)
             }
             
         }     
-        if ((temp == 18) || (umidadeSolo == 90))
+        if ((temp < 15) || (umidadeSolo > 90))
         {
             irrigacao = false;
             sys_auto = true;
@@ -521,17 +340,17 @@ void tela(int modo)
         printf("status2: %d\n", status2);
         printf("status: %d\n", status);
     }
-    if (modo == 4)
+    if (modo == 2)
     {
         limpar_o_buffer();
-        desenhar(matriz_4,64);
+        desenhar(matriz_2,64);
         escrever_no_buffer();
         adc_config();
        
        
         // VARIAVEIS
         // obtendo dados analogicos
-        tx_atualizacao = 120;
+        tx_atualizacao = 100;
         y_invert = (eixo_x_valor * 43) / 4000;
         x = cont % 67 + coluna;
         y = 63 - y_invert;
@@ -667,5 +486,185 @@ void tela(int modo)
         {
             cont = 0;
         }
+    }
+    if (modo == 3) // OLHOS MOVENDO
+    {
+        gpio_put(LED_G, 0);st_led_G= 0;
+                gpio_put(LED_B, 0);st_led_B= 0;
+                gpio_put(LED_R, 0);st_led_R= 0;
+        limpar_o_buffer();
+        desenhar(matriz_3,64);
+        escrever_no_buffer();
+        // VARIAVEIS
+        tx_atualizacao = 10;
+       
+        int olho_esq_x;
+        signed int olho_esq_y;
+
+        // Calcula a posição X a partir do valor do eixo X
+        olho_esq_x = (eixo_x_valor / 31.2) - 32;
+
+        // Calcula a posição Y invertendo o eixo (porque a tela cresce para baixo)
+        olho_esq_y = (60 - (eixo_y_valor / 70.2) - 8);
+
+        if (olho_esq_x > 37) // Limita a posição máxima em X
+        {
+            olho_esq_x = 37;
+        }
+        if (olho_esq_x < 13) // Limita a posição mínima em X
+        {
+            olho_esq_x = 13;
+        }
+
+        if (olho_esq_y > 37) // Limita a posição máxima em Y
+        {
+            olho_esq_y = 37;
+        }
+        if (olho_esq_y < 13) // Limita a posição mínima em Y
+        {
+            olho_esq_y = 13;
+        }
+        // olho esquerdo
+        ssd1306_rect(&ssd, 5, 20, 25, 5, cor, cor);
+        ssd1306_rect(&ssd, 10, 15, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 10, 45, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 15, 10, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 15, 50, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 20, 5, 5, 25, cor, cor);
+        ssd1306_rect(&ssd, 20, 55, 5, 25, cor, cor);
+        ssd1306_rect(&ssd, 45, 10, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 45, 50, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 50, 15, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 50, 45, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 55, 20, 25, 5, cor, cor);
+
+        // olho direito
+        ssd1306_rect(&ssd, 5, 85, 25, 5, cor, cor);
+        ssd1306_rect(&ssd, 10, 80, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 10, 110, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 45, 75, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 45, 115, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 20, 70, 5, 25, cor, cor);
+        ssd1306_rect(&ssd, 20, 120, 5, 25, cor, cor);
+        ssd1306_rect(&ssd, 15, 75, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 15, 115, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 50, 80, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 50, 110, 5, 5, cor, cor);
+        ssd1306_rect(&ssd, 55, 85, 25, 5, cor, cor);
+        if (status == true)
+        {
+            // BOCA SORRINDO
+            ssd1306_rect(&ssd, 55, 55, 5, 5, cor, cor);
+            ssd1306_rect(&ssd, 55, 70, 5, 5, cor, cor);
+            ssd1306_rect(&ssd, 60, 60, 10, 5, cor, cor);
+            config_pwm(LED_B, status);
+            config_pwm(LED_R, status);
+
+                // Controla o brilho do LED vermelho com base no eixo X
+            if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
+            {
+                pwm_set_gpio_level(LED_R, eixo_x_valor);st_led_R= 1;
+            }
+            else
+            {
+                pwm_set_gpio_level(LED_R, 0);st_led_R= 0;
+            }
+
+            // Controla o brilho do LED azul com base no eixo Y
+            if ((eixo_y_valor < 1500) || (eixo_y_valor > 2200))
+            {
+                pwm_set_gpio_level(LED_B, eixo_y_valor);st_led_B= 1;
+            }
+            else
+            {
+                pwm_set_gpio_level(LED_B, 0);st_led_B= 0;
+            }
+
+
+            }
+            else
+            {
+                // BOCA TRISTE
+                ssd1306_rect(&ssd, 60, 55, 5, 5, cor, cor);
+                ssd1306_rect(&ssd, 60, 70, 5, 5, cor, cor);
+                ssd1306_rect(&ssd, 55, 60, 10, 5, cor, cor);
+            }
+        // IRIS MOVEL
+        ssd1306_rect(&ssd, olho_esq_y, olho_esq_x, 15, 15, cor, status2);
+        ssd1306_rect(&ssd, olho_esq_y, olho_esq_x + 66, 15, 15, cor, status2);
+
+         // EXIBIR VALORES PARA DEPURAÇÃO----------------------------------------------------------------------
+         printf("VARIAVEIS DA TELA\n");
+         printf("SORRISO: %d\n", status); 
+         printf("PWM_LED R e B: %d\n", status); 
+    }
+    if (modo == 4) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
+    {
+        limpar_o_buffer();
+        desenhar(matriz_4,64);
+        escrever_no_buffer();
+        gpio_init(LED_R);
+            config_pwm(LED_B, status);
+            config_pwm(LED_R, status);
+            config_pwm_beep(BUZZER_A,status, 5000);
+            config_pwm_beep(BUZZER_B,status, 2000);
+            gpio_put(LED_G, status); st_led_G = status;
+
+                // Controla o brilho do LED vermelho com base no eixo X
+            if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
+            {
+                pwm_set_gpio_level(LED_R, eixo_x_valor);st_led_R= status;
+                pwm_set_gpio_level(BUZZER_A, eixo_x_valor);st_bz_A = status;
+            }
+            else
+            {
+                pwm_set_gpio_level(LED_R, 0);st_led_R= 0;
+                pwm_set_gpio_level(BUZZER_A, 0);st_bz_A = 0;
+            }
+            
+            // Controla o brilho do LED azul com base no eixo Y
+            if ((eixo_y_valor < 1500) || (eixo_y_valor > 2200))
+            {
+                pwm_set_gpio_level(LED_B, eixo_y_valor);st_led_B= status;
+                pwm_set_gpio_level(BUZZER_B, eixo_y_valor);st_bz_B = status;
+            }
+            else
+            {
+                pwm_set_gpio_level(LED_B, 0);st_led_B= 0;
+                pwm_set_gpio_level(BUZZER_B, 0);st_bz_B = 0;
+            }
+
+        tx_atualizacao = 200;
+
+        ssd1306_rect(&ssd, 0, 0, 127, 63, cor, !cor);
+
+        ssd1306_draw_string(&ssd, "LEDS", 3, 3);
+        ssd1306_draw_string(&ssd, "R", 63, 3);
+        ssd1306_draw_string(&ssd, "G", 83, 3);
+        ssd1306_draw_string(&ssd, "B", 103, 3);
+        ssd1306_draw_string(&ssd, "STATUS", 3, 13);
+        ssd1306_draw_string(&ssd, "BUZZERS", 3, 23);
+        ssd1306_rect(&ssd, 13, 63, 8, 8, cor, st_led_R);
+        ssd1306_rect(&ssd, 13, 83, 8, 8, cor, gpio_get(LED_G));
+        ssd1306_rect(&ssd, 13, 103, 8, 8, cor, st_led_B);
+        ssd1306_draw_string(&ssd, "A", 63, 23);
+        ssd1306_rect(&ssd, 23, 78, 8, 8, cor, st_bz_A);
+        ssd1306_draw_string(&ssd, "B", 93, 23);
+        ssd1306_rect(&ssd, 23, 108, 8, 8, cor, st_bz_B);
+
+        ssd1306_rect(&ssd, 31, 1, 96, 32, cor, !cor);
+        ssd1306_draw_string(&ssd, "MIC", 3, 33);
+        ssd1306_draw_string(&ssd, str_mic, 63, 33);
+        ssd1306_draw_string(&ssd, "EIXO X", 3, 43);
+        ssd1306_draw_string(&ssd, str_x, 63, 43);
+        ssd1306_draw_string(&ssd, "EIXO Y", 3, 53);
+        ssd1306_draw_string(&ssd, str_y, 63, 53);
+
+        ssd1306_rect(&ssd, 31, 96, 31, 32, cor, !cor);
+        ssd1306_draw_string(&ssd, " BT", 97, 33);
+        ssd1306_draw_string(&ssd, "A", 99, 43);
+        ssd1306_rect(&ssd, 43, 110, 8, 8, cor, !gpio_get(BT_A));
+        ssd1306_draw_string(&ssd, "B", 98, 53);
+        ssd1306_rect(&ssd, 53, 110, 8, 8, cor, !gpio_get(BT_B));
     }
 }
