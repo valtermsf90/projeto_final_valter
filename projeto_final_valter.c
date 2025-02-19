@@ -15,12 +15,11 @@
 #include "include/pwm.c"
 #include "include/adc.c"
 
-
 // PROTOTIPOS
 void config_display();
 static void interrupcao(uint gpio, uint32_t events);
 void tela(int modo);
-void desenhar(char desenho[5][5], int potencia);// VARIAVEIS
+void desenhar(char desenho[5][5], int potencia); // VARIAVEIS
 // VARIAVEL GLOBAL
 int cont = 0;
 bool cor = true;
@@ -33,7 +32,7 @@ bool led_ON = false;
 bool status = false;
 bool status2 = true;
 
-int quadro = 1; //tela de inicio
+int quadro = 1; // tela de inicio
 int tx_atualizacao = 1000;
 
 static volatile uint32_t last_time = 0;
@@ -42,8 +41,8 @@ static volatile uint32_t last_time = 0;
 bool B1 = false;
 bool A1 = true;
 int temp = 46;
-int umidadeSolo=75;
-int radiacao = 0;   
+int umidadeSolo = 75;
+int radiacao = 0;
 int nv_tanque = 20;
 bool abastecimento = false;
 bool irrigacao = false;
@@ -75,8 +74,8 @@ char str_temp_C[5];
 bool A3 = true;
 bool B3 = false;
 
-//VARIAVEIS QUADRO 04
-bool A4=true;
+// VARIAVEIS QUADRO 04
+bool A4 = true;
 bool B4 = false;
 
 // inicio
@@ -151,7 +150,7 @@ void interrupcao(uint gpio, uint32_t events)
             pwm_set_gpio_level(LED_R, 0);
             // Alterna o estado da variável led_ON
             quadro++;
-            
+
             if (quadro > 4)
             {
                 quadro = 1;
@@ -161,47 +160,49 @@ void interrupcao(uint gpio, uint32_t events)
         // Verifica se o botão BT_B foi pressionado e reinicia no modo bootloader
         if (gpio == BT_B)
         {
-            
-            if(quadro == 1){
-                B1 = !B1;  
-                
+
+            if (quadro == 1)
+            {
+                B1 = !B1;
             }
-            if(quadro == 2){
+            if (quadro == 2)
+            {
                 B2 = !B2;
                 reset_usb_boot(0, 0);
             }
-            if(quadro == 3){
-            B3 = !B3;               // Alterna entre ligado e desligado
-             
-            }//Ativa/desativa o PWM
-            if(quadro == 4){
+            if (quadro == 3)
+            {
+                B3 = !B3; // Alterna entre ligado e desligado
+
+            } // Ativa/desativa o PWM
+            if (quadro == 4)
+            {
                 B4 = !B4;
             }
-                         
-            
         }
 
         // Verifica se o botão BT_A foi pressionado e alterna o status do PWM
         if (gpio == BT_A)
         {
-            if(quadro == 1){
-                A1 = !A1; 
-                
-                
+            if (quadro == 1)
+            {
+                A1 = !A1;
             }
-            if(quadro == 2){
-                A2 = !A2;  
-               
+            if (quadro == 2)
+            {
+                A2 = !A2;
             }
-            if(quadro == 3){
-            A3 = !A3;               // Alterna entre ligado e desligado
-            
-            }// Ativa/desativa o PWM
-            if(quadro == 4){
-                A4 = !A4; 
-                          // Alterna entre ligado e desligado
-             
-            }// Ativa/desativa o PWM
+            if (quadro == 3)
+            {
+                A3 = !A3; // Alterna entre ligado e desligado
+
+            } // Ativa/desativa o PWM
+            if (quadro == 4)
+            {
+                A4 = !A4;
+                // Alterna entre ligado e desligado
+
+            } // Ativa/desativa o PWM
         }
     }
 }
@@ -209,7 +210,7 @@ void tela(int modo)
 {
     if (modo == 1)
     {
-        
+
         limpar_o_buffer();
         desenhar(matriz_1, 64);
         escrever_no_buffer();
@@ -219,7 +220,7 @@ void tela(int modo)
         const int UV = 70;
         power_sys = A1;
         tx_atualizacao = 5;
-       
+
         radiacao = temp * 2;
         char str_nv_tanque[5];
         char str_umidadeSolo[5];
@@ -262,7 +263,7 @@ void tela(int modo)
             sys_auto = power_sys;
             irrigacao = false;
             abastecimento = false;
-          // SIMULAR TEMPERATURA JOYSTICK----------------------------
+            // SIMULAR TEMPERATURA JOYSTICK----------------------------
             if (sys_auto == false)
             {
                 if (eixo_x_valor < 1000)
@@ -291,12 +292,13 @@ void tela(int modo)
         else
         {
             amarelo(0);
-            piscar(cont,7);
-            
+            piscar(cont, 7);
+
             sys_auto = B1;
-            if(sys_auto == true){
+            if (sys_auto == true)
+            {
                 verde(0);
-                piscar(cont,7);
+                piscar(cont, 7);
             }
             if ((irrigacao == false))
             {
@@ -307,7 +309,8 @@ void tela(int modo)
                     radiacao = radiacao + (temp % 2);
                 }
             }
-            if(sys_auto == true){
+            if (sys_auto == true)
+            {
                 if ((temp > 47) || (umidadeSolo < 60))
                 {
                     irrigacao = true;
@@ -316,18 +319,18 @@ void tela(int modo)
                 if (irrigacao == true)
                 {
                     ciano(0);
-                    piscar(cont,7);
+                    piscar(cont, 7);
                     nv_tanque--;
                     temp = temp - (nv_tanque % 3);
                     if (temp < 5)
-                        {
-                            temp = 5;
-                        }
+                    {
+                        temp = 5;
+                    }
                     umidadeSolo = umidadeSolo + (temp % 3);
                     if (umidadeSolo > 95)
-                        {
-                            umidadeSolo = 95;
-                        }
+                    {
+                        umidadeSolo = 95;
+                    }
                     abastecimento = false;
                     if (nv_tanque < 99)
                     {
@@ -341,7 +344,7 @@ void tela(int modo)
                 if (abastecimento == true)
                 {
                     azul(0);
-                    piscar(cont,7);
+                    piscar(cont, 7);
                     nv_tanque++;
                     if (nv_tanque == 99)
                     {
@@ -352,8 +355,7 @@ void tela(int modo)
                 {
                     irrigacao = false;
                 }
-            }       
-       
+            }
         }
         cont++;
         if (cont == 99)
@@ -370,18 +372,17 @@ void tela(int modo)
         printf("abastecimento: %d\n", abastecimento);
         printf("sysAuto: %d\n", sys_auto);
         printf("PowerSys    : %d\n", power_sys);
-        printf("status: %d\n", status);    }
+        printf("status: %d\n", status);
+    }
     if (modo == 2)
     {
         pwm_set_gpio_level(LED_B, 0);
         pwm_set_gpio_level(LED_R, 0);
         limpar_o_buffer();
-        desenhar(matriz_2,64);
+        desenhar(matriz_2, 64);
         escrever_no_buffer();
         adc_config();
-        
-         
-       
+
         // VARIAVEIS
         // obtendo dados analogicos
         tx_atualizacao = 100;
@@ -403,92 +404,106 @@ void tela(int modo)
                 bpm = (mic * 160) / 4098;
             }
             resp = pA * 3;
-            temp_C = (pA2*84)/ 14;
+            temp_C = (pA2 * 84) / 14;
             sprintf(str_resp, "%d", resp);
             sprintf(str_temp_C, "%d", temp_C);
             sprintf(str_pA, "%d", pA);   // Converte o inteiro em string
             sprintf(str_pA2, "%d", pA2); // Converte o inteiro em string
             sprintf(str_bpm, "%d", bpm);
-            config_pwm_beep(BUZZER_B, 1, 2000);st_bz_B = 1;
-            config_pwm_beep(BUZZER_A, 1, 2000);st_bz_A = 1;
+            config_pwm_beep(BUZZER_B, 1, 2000);
+            st_bz_B = 1;
+            config_pwm_beep(BUZZER_A, 1, 2000);
+            st_bz_A = 1;
         }
         if ((cont % 6 == 0) && (obito == false))
         {
-            gpio_put(LED_G, 0);st_led_G = 0;
-            gpio_put(LED_R, 0);st_led_R = 0;
-            gpio_put(LED_B, 0);st_led_B = 0;
+            gpio_put(LED_G, 0);
+            st_led_G = 0;
+            gpio_put(LED_R, 0);
+            st_led_R = 0;
+            gpio_put(LED_B, 0);
+            st_led_B = 0;
             sleep_ms(100);
         }
-        config_pwm_beep(BUZZER_B, 0, 2000);st_bz_B = 0;
-        config_pwm_beep(BUZZER_A, 0, 2000);st_bz_A = 0;
+        config_pwm_beep(BUZZER_B, 0, 2000);
+        st_bz_B = 0;
+        config_pwm_beep(BUZZER_A, 0, 2000);
+        st_bz_A = 0;
 
         // BPM----------------------------------------------------------------------+
-        ssd1306_rect(&ssd, 0, 0, coluna, 21, A2, !A2);           // caixa menor   |
-        ssd1306_draw_string(&ssd, "BPM", 2, 2);                    // BPM           |
-        ssd1306_draw_string(&ssd, str_bpm, 37, 2);                 //
+        ssd1306_rect(&ssd, 0, 0, coluna, 21, A2, !A2); // caixa menor   |
+        ssd1306_draw_string(&ssd, "BPM", 2, 2);        // BPM           |
+        ssd1306_draw_string(&ssd, str_bpm, 37, 2);     //
         ssd1306_line(&ssd, 0, 18, cont, 18, A2);
-        ssd1306_line(&ssd, 2 + cont, 18, 10 + cont,18-((bpm * 10)/160), A2);          //|
-        ssd1306_line(&ssd, 10 + cont, 18-((bpm * 10)/160), 18 + cont,18, A2); 
-        ssd1306_line(&ssd, 18+cont, 18, coluna, 18, A2);         //|
+        ssd1306_line(&ssd, 2 + cont, 18, 10 + cont, 18 - ((bpm * 10) / 160), A2); //|
+        ssd1306_line(&ssd, 10 + cont, 18 - ((bpm * 10) / 160), 18 + cont, 18, A2);
+        ssd1306_line(&ssd, 18 + cont, 18, coluna, 18, A2); //|
         //--------------------------------------------------------------------------+
         // BPM----------------------------------------------------------------------+
-        ssd1306_rect(&ssd, 21, 0, coluna, 21, A2, !A2);           // caixa menor  |
-        ssd1306_draw_string(&ssd, "TEMP", 2, 23);                    // BPM          |
+        ssd1306_rect(&ssd, 21, 0, coluna, 21, A2, !A2); // caixa menor  |
+        ssd1306_draw_string(&ssd, "TEMP", 2, 23);       // BPM          |
         ssd1306_draw_string(&ssd, str_temp_C, 37, 23);
         ssd1306_line(&ssd, 0, 39, cont, 39, A2);
-        ssd1306_line(&ssd, cont, 39, 14 + cont,39-((temp_C * 10)/46), A2);          //|
-        ssd1306_line(&ssd, 14 + cont, 39-((temp_C * 10)/46), 28 + cont,39, A2); 
-        ssd1306_line(&ssd, 28+cont, 39, coluna, 39, A2);                   //               |
+        ssd1306_line(&ssd, cont, 39, 14 + cont, 39 - ((temp_C * 10) / 46), A2); //|
+        ssd1306_line(&ssd, 14 + cont, 39 - ((temp_C * 10) / 46), 28 + cont, 39, A2);
+        ssd1306_line(&ssd, 28 + cont, 39, coluna, 39, A2); //               |
         //--------------------------------------------------------------------------+
         // RESP---------------------------------------------------------------------+
-        ssd1306_rect(&ssd, 42, 0, coluna,21, A2, !A2);           // caixa menor   |
-        ssd1306_draw_string(&ssd, "RES", 2, 44);                    // REPSIRAÇÃO   |
-        ssd1306_draw_string(&ssd, str_resp, 37, 44);   
+        ssd1306_rect(&ssd, 42, 0, coluna, 21, A2, !A2); // caixa menor   |
+        ssd1306_draw_string(&ssd, "RES", 2, 44);        // REPSIRAÇÃO   |
+        ssd1306_draw_string(&ssd, str_resp, 37, 44);
         ssd1306_line(&ssd, 0, 60, cont, 60, A2);
-        ssd1306_line(&ssd, cont, 60, 12 + cont,60-((resp * 10)/66), A2);          //|
-        ssd1306_line(&ssd, 12 + cont, 60-((resp * 10)/66), 24 + cont,60, A2); 
+        ssd1306_line(&ssd, cont, 60, 12 + cont, 60 - ((resp * 10) / 66), A2); //|
+        ssd1306_line(&ssd, 12 + cont, 60 - ((resp * 10) / 66), 24 + cont, 60, A2);
         ssd1306_line(&ssd, 24 + cont, 60, coluna, 60, A2);
         //--------------------------------------------------------------------------+
-       
+
         // pA-----------------------------------------------------------------------+
-        ssd1306_rect(&ssd, 0, coluna, WIDTH - coluna, 18, A2, !A2);// caixa menor |
-        ssd1306_draw_string(&ssd, "PA", coluna + 3, 4);              // pA          |
-        ssd1306_draw_string(&ssd, str_pA, coluna + 30, 4);           //             |
+        ssd1306_rect(&ssd, 0, coluna, WIDTH - coluna, 18, A2, !A2); // caixa menor |
+        ssd1306_draw_string(&ssd, "PA", coluna + 3, 4);             // pA          |
+        ssd1306_draw_string(&ssd, str_pA, coluna + 30, 4);          //             |
         ssd1306_line(&ssd, coluna + 46, 14, coluna + 50, 4, A2);    //             |
-        ssd1306_draw_string(&ssd, str_pA2, 109, 4); // VARIAVEL pA                  |
+        ssd1306_draw_string(&ssd, str_pA2, 109, 4);                 // VARIAVEL pA                  |
         //--------------------------------------------------------------------------+
-        //CAIXA MAIOR pA-----------------------------------------------------------------------+
-        // LINHA FIXA ANTERIOR                                                      
-        if(A2 == true){                
-            ssd1306_rect(&ssd, 18, coluna, WIDTH - coluna, 63 - 18, A2, !A2);                 
-            ssd1306_rect(&ssd, linha, coluna, cont, 1, A2, A2);    
-            //  SE OBITO ---------------------------------------------------------------------------                                                        
-            if ((pA == 0) || (pA2 == 0) || (bpm == 0))                                 
+        // CAIXA MAIOR pA-----------------------------------------------------------------------+
+        // LINHA FIXA ANTERIOR
+        if (A2 == true)
+        {
+            ssd1306_rect(&ssd, 18, coluna, WIDTH - coluna, 63 - 18, A2, !A2);
+            ssd1306_rect(&ssd, linha, coluna, cont, 1, A2, A2);
+            //  SE OBITO ---------------------------------------------------------------------------
+            if ((pA == 0) || (pA2 == 0) || (bpm == 0))
             {
-    
+
                 // MEDIÇÃO 01
                 ssd1306_line(&ssd, coluna + cont, linha, coluna + cont + 5, linha, A2);
                 ssd1306_line(&ssd, coluna + cont + 5, linha, coluna + cont + 10, linha, A2);
                 ssd1306_line(&ssd, coluna + cont + 10, linha, coluna + cont + 15, linha, A2);
-    
+
                 // MEDIÇAÕ 02
                 ssd1306_line(&ssd, coluna + cont + 27, linha, coluna + cont + 32, linha, A2);
                 ssd1306_line(&ssd, coluna + cont + 32, linha, coluna + cont + 37, linha, A2);
                 ssd1306_line(&ssd, coluna + cont + 37, linha, coluna + cont + 42, linha, A2);
-                gpio_put(LED_R, 1);st_led_R = 1;
-                gpio_put(LED_G, 0);st_led_G = 0;
-                config_pwm_beep(BUZZER_A, 1, 2000);st_bz_A = 1;
-                config_pwm_beep(BUZZER_B, 1, 2000);st_bz_B = 1;
+                gpio_put(LED_R, 1);
+                st_led_R = 1;
+                gpio_put(LED_G, 0);
+                st_led_G = 0;
+                config_pwm_beep(BUZZER_A, 1, 2000);
+                st_bz_A = 1;
+                config_pwm_beep(BUZZER_B, 1, 2000);
+                st_bz_B = 1;
                 obito = true;
-    
+
             } //-------------------------------------------------------------------------------------------------
             else // NAO OBTIO------------------------------------------------------------------------------------
             {
-    
+
                 obito = false;
-                gpio_put(LED_R, 0);st_led_R= 0;
-                gpio_put(LED_G, 1);st_led_G = 1;
-    
+                gpio_put(LED_R, 0);
+                st_led_R = 0;
+                gpio_put(LED_G, 1);
+                st_led_G = 1;
+
                 // MEDIÇÃO 01
                 ssd1306_line(&ssd, coluna + cont, linha, coluna + cont + 5, y, A2);
                 ssd1306_line(&ssd, coluna + cont + 5, y, coluna + cont + 10, (linha - y) + linha, A2);
@@ -503,38 +518,47 @@ void tela(int modo)
 
             // LINHA FINAL
             ssd1306_rect(&ssd, linha, coluna + cont + 42, 127 - (coluna + cont + 42), 1, A2, A2);
-
-        }else{
+        }
+        else
+        {
             //----------------------------------------------------------------------------------------------------
-            
-            ssd1306_rect(&ssd, 28,87,6,2,!A2,!A2);ssd1306_rect(&ssd, 28,99,6,2,!A2,!A2);                
-            ssd1306_rect(&ssd, 30,85,10,2,!A2,!A2);ssd1306_rect(&ssd, 30,97,10,2,!A2,!A2);
-            ssd1306_rect(&ssd, 32,83,26,8,!A2,!A2);
-            ssd1306_rect(&ssd, 40,85,22,2,!A2,!A2);
-            ssd1306_rect(&ssd, 42,87,18,2,!A2,!A2);
-            ssd1306_rect(&ssd, 44,89,14,2,!A2,!A2);
-            ssd1306_rect(&ssd, 46,91,10,2,!A2,!A2);
-            ssd1306_rect(&ssd, 48,93,6,2,!A2,!A2);
-            ssd1306_rect(&ssd, 50,95,2,2,!A2,!A2);
-            if ((pA == 0) || (pA2 == 0) || (bpm == 0))                                 
+
+            ssd1306_rect(&ssd, 28, 87, 6, 2, !A2, !A2);
+            ssd1306_rect(&ssd, 28, 99, 6, 2, !A2, !A2);
+            ssd1306_rect(&ssd, 30, 85, 10, 2, !A2, !A2);
+            ssd1306_rect(&ssd, 30, 97, 10, 2, !A2, !A2);
+            ssd1306_rect(&ssd, 32, 83, 26, 8, !A2, !A2);
+            ssd1306_rect(&ssd, 40, 85, 22, 2, !A2, !A2);
+            ssd1306_rect(&ssd, 42, 87, 18, 2, !A2, !A2);
+            ssd1306_rect(&ssd, 44, 89, 14, 2, !A2, !A2);
+            ssd1306_rect(&ssd, 46, 91, 10, 2, !A2, !A2);
+            ssd1306_rect(&ssd, 48, 93, 6, 2, !A2, !A2);
+            ssd1306_rect(&ssd, 50, 95, 2, 2, !A2, !A2);
+            if ((pA == 0) || (pA2 == 0) || (bpm == 0))
             {
-                gpio_put(LED_R, 1);st_led_R = 1;
-                gpio_put(LED_B, 0);st_led_B = 0;
-                config_pwm_beep(BUZZER_A, 1, 2000);st_bz_A = 1;
-                config_pwm_beep(BUZZER_B, 1, 2000);st_bz_B = 1;
+                gpio_put(LED_R, 1);
+                st_led_R = 1;
+                gpio_put(LED_B, 0);
+                st_led_B = 0;
+                config_pwm_beep(BUZZER_A, 1, 2000);
+                st_bz_A = 1;
+                config_pwm_beep(BUZZER_B, 1, 2000);
+                st_bz_B = 1;
                 obito = true;
-            }else{
+            }
+            else
+            {
                 obito = false;
-                gpio_put(LED_R, 0);st_led_R= 0;
-                gpio_put(LED_B, 1);st_led_B = 1;
+                gpio_put(LED_R, 0);
+                st_led_R = 0;
+                gpio_put(LED_B, 1);
+                st_led_B = 1;
             }
         }
 
-
-
         // EXIBIR VALORES PARA DEPURAÇÃO----------------------------------------------------------------------
         printf("VARIAVEIS DA TELA\n");
-        printf("cont: %d\n", cont);        
+        printf("cont: %d\n", cont);
         printf("pA: %d\n", pA);
         printf("pA2: %d\n", pA2);
         printf("Bpm: %d\n", bpm);
@@ -542,8 +566,8 @@ void tela(int modo)
         printf("C°: %d\n", temp_C);
         printf("\nX: %d\n", x);
         printf("Y: %d\n", y);
-        printf("Y INVERT: %d\n", y_invert);   
-        printf("A2: %d\n", A2);  
+        printf("Y INVERT: %d\n", y_invert);
+        printf("A2: %d\n", A2);
 
         // CONTADOR PARA REINICIAR AO CHEGAR NO FINAL----------------------------------------------------------
         cont = cont + 1;
@@ -554,15 +578,18 @@ void tela(int modo)
     }
     if (modo == 3) // OLHOS MOVENDO  ok
     {
-        gpio_put(LED_G, 0);st_led_G= 0;
-        gpio_put(LED_B, 0);st_led_B= 0;
-        gpio_put(LED_R, 0);st_led_R= 0;
+        gpio_put(LED_G, 0);
+        st_led_G = 0;
+        gpio_put(LED_B, 0);
+        st_led_B = 0;
+        gpio_put(LED_R, 0);
+        st_led_R = 0;
         limpar_o_buffer();
-        desenhar(matriz_3,64);
+        desenhar(matriz_3, 64);
         escrever_no_buffer();
         // VARIAVEIS
         tx_atualizacao = 10;
-       
+
         int olho_esq_x;
         signed int olho_esq_y;
 
@@ -625,27 +652,29 @@ void tela(int modo)
             config_pwm(LED_B, status);
             config_pwm(LED_R, status);
 
-                // Controla o brilho do LED vermelho com base no eixo X
+            // Controla o brilho do LED vermelho com base no eixo X
             if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
             {
-                pwm_set_gpio_level(LED_R, eixo_x_valor);st_led_R= 1;
+                pwm_set_gpio_level(LED_R, eixo_x_valor);
+                st_led_R = 1;
             }
             else
             {
-                pwm_set_gpio_level(LED_R, 0);st_led_R= 0;
+                pwm_set_gpio_level(LED_R, 0);
+                st_led_R = 0;
             }
 
             // Controla o brilho do LED azul com base no eixo Y
             if ((eixo_y_valor < 1500) || (eixo_y_valor > 2200))
             {
-                pwm_set_gpio_level(LED_B, eixo_y_valor);st_led_B= 1;
+                pwm_set_gpio_level(LED_B, eixo_y_valor);
+                st_led_B = 1;
             }
             else
             {
-                pwm_set_gpio_level(LED_B, 0);st_led_B= 0;
+                pwm_set_gpio_level(LED_B, 0);
+                st_led_B = 0;
             }
-
-
         }
         else
         {
@@ -654,55 +683,67 @@ void tela(int modo)
             ssd1306_rect(&ssd, 60, 70, 5, 5, cor, cor);
             ssd1306_rect(&ssd, 55, 60, 10, 5, cor, cor);
         }
-        if(A3 == true){
+        if (gpio_get(BT_A))
+        {
             // IRIS MOVEL
             ssd1306_rect(&ssd, olho_esq_y, olho_esq_x, 15, 15, cor, !B3);
             ssd1306_rect(&ssd, olho_esq_y, olho_esq_x + 66, 15, 15, cor, !B3);
-        }else{
-            ssd1306_rect(&ssd, olho_esq_y +7, olho_esq_x, 15, 1, cor, !B3);
-            ssd1306_rect(&ssd, olho_esq_y+7, olho_esq_x + 66, 15, 1, cor, !B3);
         }
-         // EXIBIR VALORES PARA DEPURAÇÃO----------------------------------------------------------------------
-         printf("VARIAVEIS DA TELA\n");
-         printf("SORRISO: %d\n", A3); 
-         printf("A3: %d\n", A3); 
-         printf("B3: %d\n", B3); 
+        else
+        {
+            ssd1306_rect(&ssd, olho_esq_y + 7, olho_esq_x, 15, 1, cor, !B3);
+            ssd1306_rect(&ssd, olho_esq_y + 7, olho_esq_x + 66, 15, 1, cor, !B3);
+        }
+        // EXIBIR VALORES PARA DEPURAÇÃO----------------------------------------------------------------------
+        printf("VARIAVEIS DA TELA\n");
+        printf("SORRISO: %d\n", A3);
+        printf("A3: %d\n", A3);
+        printf("B3: %d\n", B3);
     }
-   if (modo == 4) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
+    if (modo == 4) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
     {
         limpar_o_buffer();
-        desenhar(matriz_4,64);
+        desenhar(matriz_4, 64);
         escrever_no_buffer();
         gpio_init(LED_R);
-            config_pwm(LED_B, status2);
-            config_pwm(LED_R, status2);
-            config_pwm_beep(BUZZER_A,status, 5000);
-            config_pwm_beep(BUZZER_B,status, 2000);
-            gpio_put(LED_G, status); st_led_G = status;
+        config_pwm(LED_B, A4);
+        config_pwm(LED_R, A4);
+        config_pwm_beep(BUZZER_A, B4, 5000);
+        config_pwm_beep(BUZZER_B, B4, 2000);
+        gpio_put(LED_G, B4);
+        st_led_G = B4;
 
-                // Controla o brilho do LED vermelho com base no eixo X
-            if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
-            {
-                pwm_set_gpio_level(LED_R, eixo_x_valor);st_led_R= status2;
-                pwm_set_gpio_level(BUZZER_A, eixo_x_valor);st_bz_A = status;
-            }
-            else
-            {
-                pwm_set_gpio_level(LED_R, 0);st_led_R= 0;
-                pwm_set_gpio_level(BUZZER_A, 0);st_bz_A = 0;
-            }
-            
-            // Controla o brilho do LED azul com base no eixo Y
-            if ((eixo_y_valor < 1500) || (eixo_y_valor > 2200))
-            {
-                pwm_set_gpio_level(LED_B, eixo_y_valor);st_led_B= status2;
-                pwm_set_gpio_level(BUZZER_B, eixo_y_valor);st_bz_B = status;
-            }
-            else
-            {
-                pwm_set_gpio_level(LED_B, 0);st_led_B= 0;
-                pwm_set_gpio_level(BUZZER_B, 0);st_bz_B = 0;
-            }
+        // Controla o brilho do LED vermelho com base no eixo X
+        if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
+        {
+            pwm_set_gpio_level(LED_R, eixo_x_valor);
+            st_led_R = A4;
+            pwm_set_gpio_level(BUZZER_A, eixo_x_valor);
+            st_bz_A = B4;
+        }
+        else
+        {
+            pwm_set_gpio_level(LED_R, 0);
+            st_led_R = 0;
+            pwm_set_gpio_level(BUZZER_A, 0);
+            st_bz_A = 0;
+        }
+
+        // Controla o brilho do LED azul com base no eixo Y
+        if ((eixo_y_valor < 1500) || (eixo_y_valor > 2200))
+        {
+            pwm_set_gpio_level(LED_B, eixo_y_valor);
+            st_led_B = A4;
+            pwm_set_gpio_level(BUZZER_B, eixo_y_valor);
+            st_bz_B = B4;
+        }
+        else
+        {
+            pwm_set_gpio_level(LED_B, 0);
+            st_led_B = 0;
+            pwm_set_gpio_level(BUZZER_B, 0);
+            st_bz_B = 0;
+        }
 
         tx_atualizacao = 200;
 
