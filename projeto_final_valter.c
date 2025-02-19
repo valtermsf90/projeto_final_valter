@@ -42,6 +42,7 @@ int nv_tanque = 20;
 bool abastecimento = false;
 bool irrigacao = false;
 bool sys_auto = false;
+bool power_sys = true;
 // VARIAVEIS QUADRO 4
 bool obito = false;
 int cont = 0;
@@ -200,9 +201,9 @@ void tela(int modo)
         const int TEMP_MAX = 40;
         const int UMID_MIN = 50;
         const int UV = 70;
-
+        power_sys = status2;
         tx_atualizacao = 5;
-        sys_auto = status;
+       
         radiacao = temp * 2;
         char str_nv_tanque[5];
         char str_umidadeSolo[5];
@@ -225,7 +226,7 @@ void tela(int modo)
         ssd1306_draw_string(&ssd, "PWR", 89, 2);
         ssd1306_draw_string(&ssd, "IRR", 89, 12);
         ssd1306_draw_string(&ssd, "ABS", 89, 22);
-        ssd1306_rect(&ssd, 2, WIDTH - 10, 8, 8, cor, status2);
+        ssd1306_rect(&ssd, 2, WIDTH - 10, 8, 8, cor, power_sys);
         ssd1306_rect(&ssd, 12, WIDTH - 10, 8, 8, cor, irrigacao);
         ssd1306_rect(&ssd, 22, WIDTH - 10, 8, 8, cor, abastecimento);
 
@@ -239,95 +240,98 @@ void tela(int modo)
         ssd1306_draw_string(&ssd, str_nv_tanque, 12 + nv_tanque, HEIGHT - 10);
         ssd1306_rect(&ssd, 0, 0, WIDTH, HEIGHT, cor, !cor);
         // FIM LAYOUT-----------------------------------------------------------
-        if(status2 == false){
+        if (power_sys == false)
+        {
+            sys_auto = power_sys;
             irrigacao = false;
-        }else {
-        // SIMULAR TEMPERATURA JOYSTICK----------------------------
-        if (sys_auto == false)
-        {
-            if (eixo_x_valor < 1000)
-            {
-                umidadeSolo--;
-            }
-            if (eixo_x_valor > 3000)
-            {
-                umidadeSolo++;
-                temp = temp - (umidadeSolo % 2);
-            }
-
-            // Controla o brilho do LED azul com base no eixo Y
-            if (eixo_y_valor < 1000)
-            {
-                temp--;
-            }
-            if (eixo_y_valor > 2200)
-            {
-                temp++;
-                umidadeSolo--;
-            }
-        }
-        // FIM SIMULADOR-------------------------------------------
-    
-        
-        if ((temp > 47) || (umidadeSolo < 60))
-        {
-            irrigacao = true;
             abastecimento = false;
-            sys_auto = false;
-           
-        }
-        if(irrigacao == true){
-            nv_tanque--;
-            temp = temp - (nv_tanque % 3);
-            if(temp < 6){
-                temp = 6;
-            }
-            umidadeSolo = umidadeSolo + (temp % 3);
-            if(umidadeSolo > 95){
-                umidadeSolo = 95;
-            }
-             abastecimento= false;
-            if (nv_tanque < 99)
+          // SIMULAR TEMPERATURA JOYSTICK----------------------------
+            if (sys_auto == false)
             {
-                if ((nv_tanque < 5) && (irrigacao == true))
+                if (eixo_x_valor < 1000)
                 {
-                    irrigacao = false;
-                    sys_auto= true;
-                    abastecimento= true;
+                    umidadeSolo--;
+                }
+                if (eixo_x_valor > 3000)
+                {
+                    umidadeSolo++;
+                    temp = temp - (umidadeSolo % 2);
+                }
+
+                // Controla o brilho do LED azul com base no eixo Y
+                if (eixo_y_valor < 1000)
+                {
+                    temp--;
+                }
+                if (eixo_y_valor > 2200)
+                {
+                    temp++;
+                    umidadeSolo--;
+                }
+                // FIM SIMULADOR-------------------------------------------
+            }
+        }
+        else
+        {
+            sys_auto = status;
+            if ((irrigacao == false))
+            {
+                if ((cont % 50 == 0) && (irrigacao == false))
+                {
+                    temp++;
+                    umidadeSolo = umidadeSolo - (temp % 3);
+                    radiacao = radiacao + (temp % 2);
                 }
             }
-
-        }   
-        if(abastecimento == true){
-            nv_tanque++;
-           
-            sys_auto=true;
-            if(nv_tanque==99){
-                abastecimento = false;
-            }
-            
-        }     
-        if ((temp < 15) || (umidadeSolo > 90))
-        {
-            irrigacao = false;
-            sys_auto = true;
-        }
-    }
-        if ((sys_auto == true) && (irrigacao == false))
-        {
-            if ((cont % 50 == 0) && (irrigacao == false))
-            {
-                temp++;
-                umidadeSolo = umidadeSolo - (temp % 3);
-                radiacao = radiacao + (temp % 2);
-            }
+            if(sys_auto == true){
+                if ((temp > 47) || (umidadeSolo < 60))
+                {
+                    irrigacao = true;
+                    abastecimento = false;
+                }
+                if (irrigacao == true)
+                {
+                    nv_tanque--;
+                    temp = temp - (nv_tanque % 3);
+                    if (temp < 5)
+                        {
+                            temp = 5;
+                        }
+                    umidadeSolo = umidadeSolo + (temp % 3);
+                    if (umidadeSolo > 95)
+                        {
+                            umidadeSolo = 95;
+                        }
+                    abastecimento = false;
+                    if (nv_tanque < 99)
+                    {
+                        if ((nv_tanque < 5) && (irrigacao == true))
+                        {
+                            irrigacao = false;
+                            abastecimento = true;
+                        }
+                    }
+                }
+                if (abastecimento == true)
+                {
+                    nv_tanque++;
+                    if (nv_tanque == 99)
+                    {
+                        abastecimento = false;
+                    }
+                }
+                if ((temp < 15) || (umidadeSolo > 90))
+                {
+                    irrigacao = false;
+                }
+            }       
+       
         }
         cont++;
         if (cont == 99)
         {
             cont = 0;
         }
-
         printf("VARIAVEIS DA TELA\n");
         printf("cont: %d\n", cont);
         printf("nivel1: %d\n", nv_tanque);
@@ -337,7 +341,7 @@ void tela(int modo)
         printf("Irrigação: %d\n", irrigacao);
         printf("abastecimento: %d\n", abastecimento);
         printf("sysAuto: %d\n", sys_auto);
-        printf("status2: %d\n", status2);
+        printf("PowerSys    : %d\n", power_sys);
         printf("status: %d\n", status);
     }
     if (modo == 2)
