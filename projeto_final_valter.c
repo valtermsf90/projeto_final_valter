@@ -30,15 +30,16 @@ bool st_led_B = false;
 bool st_led_G = false;
 bool led_ON = false;
 bool status = false;
-bool status2 = false;
+bool status2 = true;
 int quadro = 3; //tela de inicio
 int tx_atualizacao = 1000;
 static volatile uint32_t last_time = 0;
 // VARIAVEIS QUADRO 3
-int temp = 33;
+int temp = 46;
 int umidadeSolo=75;
 int radiacao = 0;   
-int nv_tanque = 99;
+int nv_tanque = 20;
+bool abastecimento = false;
 bool irrigacao = false;
 bool sys_auto = false;
 // VARIAVEIS QUADRO 4
@@ -147,7 +148,7 @@ void interrupcao(uint gpio, uint32_t events)
         // Verifica se o botão BT_B foi pressionado e reinicia no modo bootloader
         if (gpio == BT_B)
         {
-            reset_usb_boot(0, 0);
+            
             if(quadro == 1){
                 status2 = !status2;  
                 
@@ -179,7 +180,7 @@ void interrupcao(uint gpio, uint32_t events)
             }
             if(quadro == 3){
             status = !status;               // Alterna entre ligado e desligado
-            pwm_set_enabled(slice, status); 
+            
             }// Ativa/desativa o PWM
             if(quadro == 4){
                           // Alterna entre ligado e desligado
@@ -373,93 +374,152 @@ void tela(int modo)
     }
     if (modo == 3)
     {
-        
         limpar_o_buffer();
-        desenhar(matriz_3,64);
+        desenhar(matriz_3, 64);
         escrever_no_buffer();
         // VARIAVEIS
-        const int TEMP_MAX= 40;
-        const int UMID_MIN=50;
-        const int UV =70;
+        const int TEMP_MAX = 40;
+        const int UMID_MIN = 50;
+        const int UV = 70;
 
-        tx_atualizacao = 30;       
-        radiacao= temp *2;     
+        tx_atualizacao = 5;
+        sys_auto = status;
+        radiacao = temp * 2;
         char str_nv_tanque[5];
         char str_umidadeSolo[5];
         char str_radiacao[5];
         char str_temp[5];
-        
-        sprintf(str_nv_tanque, "%d", nv_tanque);   // Converte o inteiro em string
-        sprintf(str_temp,"%d",  temp);
-        sprintf(str_radiacao,"%d", radiacao);
+        sprintf(str_nv_tanque, "%d", nv_tanque); // Converte o inteiro em string
+        sprintf(str_temp, "%d", temp);
+        sprintf(str_radiacao, "%d", radiacao);
         sprintf(str_umidadeSolo, "%d", umidadeSolo);
-        //SIMULAR TEMPERATURA JOYSTICK----------------------------
-        if (eixo_x_valor < 1000)
-        {
-            umidadeSolo--;
-        }
-        if(eixo_x_valor > 3000)
-        {
-            umidadeSolo++;
-            temp= temp-(umidadeSolo % 2);
-        }
 
-        // Controla o brilho do LED azul com base no eixo Y
-        if (eixo_y_valor < 1000)
-        {
-            temp--;
-        }
-        if(eixo_y_valor > 2200)
-        {
-            temp++;
-            umidadeSolo--;
-        }
-        //FIM SIMULADOR-------------------------------------------
-        //LAYOUT TELA 3 ------------------------------------------       
-        ssd1306_draw_string(&ssd,"UMIDADE",2,2);
-        ssd1306_draw_string(&ssd,str_umidadeSolo,70,2);
-        ssd1306_draw_string(&ssd,"TEMP C",2,12);
-        ssd1306_draw_string(&ssd,str_temp,70,12);
-        ssd1306_draw_string(&ssd,"RAIO UV",2,22);
-        ssd1306_draw_string(&ssd,str_radiacao,70,22);
-        ssd1306_vline(&ssd, 87,0,HEIGHT-33,cor);
-       
-        ssd1306_draw_string(&ssd,"IRR",89,2);
-        ssd1306_draw_string(&ssd,"X",89,12);
-        ssd1306_draw_string(&ssd,"ABS",89,22);
-        ssd1306_rect(&ssd,2, WIDTH -10, 8,8 ,cor, status2 );
-        ssd1306_rect(&ssd,12, WIDTH -10, 8,8 ,cor,!cor );
-        ssd1306_rect(&ssd,22, WIDTH -10, 8,8 ,cor,status );
+        // LAYOUT TELA 3 ------------------------------------------
+        ssd1306_draw_string(&ssd, "UMIDADE", 2, 2);
+        ssd1306_draw_string(&ssd, str_umidadeSolo, 70, 2);
+        ssd1306_draw_string(&ssd, "TEMP C", 2, 12);
+        ssd1306_draw_string(&ssd, str_temp, 70, 12);
+        ssd1306_draw_string(&ssd, "RAIO UV", 2, 22);
+        ssd1306_draw_string(&ssd, str_radiacao, 70, 22);
+        ssd1306_vline(&ssd, 87, 0, HEIGHT - 33, cor);
 
+        ssd1306_draw_string(&ssd, "PWR", 89, 2);
+        ssd1306_draw_string(&ssd, "IRR", 89, 12);
+        ssd1306_draw_string(&ssd, "ABS", 89, 22);
+        ssd1306_rect(&ssd, 2, WIDTH - 10, 8, 8, cor, status2);
+        ssd1306_rect(&ssd, 12, WIDTH - 10, 8, 8, cor, irrigacao);
+        ssd1306_rect(&ssd, 22, WIDTH - 10, 8, 8, cor, abastecimento);
 
         ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 33, cor);
-        ssd1306_draw_string(&ssd,"System Auto",2,HEIGHT -31);
-        ssd1306_rect(&ssd,HEIGHT -31, WIDTH -10, 8,8 ,cor,status); // alterar botao A
+        ssd1306_draw_string(&ssd, "System Auto", 2, HEIGHT - 31);
+        ssd1306_rect(&ssd, HEIGHT - 31, WIDTH - 10, 8, 8, cor, sys_auto); // alterar botao A
         ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 22, cor);
-        ssd1306_draw_string(&ssd,"NIVEL TANQUE",12,HEIGHT -20);
-        ssd1306_draw_char(&ssd, '0' , 1, HEIGHT -10);
-        ssd1306_rect(&ssd, HEIGHT -10,9, nv_tanque, 8, cor,cor);
-        ssd1306_draw_string(&ssd, str_nv_tanque,12+nv_tanque,HEIGHT -10);
-        ssd1306_rect(&ssd, 0,0, WIDTH, HEIGHT, cor,!cor);
-        //FIM LAYOUT-----------------------------------------------------------
+        ssd1306_draw_string(&ssd, "NIVEL TANQUE", 12, HEIGHT - 20);
+        ssd1306_draw_char(&ssd, '0', 1, HEIGHT - 10);
+        ssd1306_rect(&ssd, HEIGHT - 10, 9, nv_tanque, 8, cor, cor);
+        ssd1306_draw_string(&ssd, str_nv_tanque, 12 + nv_tanque, HEIGHT - 10);
+        ssd1306_rect(&ssd, 0, 0, WIDTH, HEIGHT, cor, !cor);
+        // FIM LAYOUT-----------------------------------------------------------
+        if(status2 == false){
+            irrigacao = false;
+        }else {
+        // SIMULAR TEMPERATURA JOYSTICK----------------------------
+        if (sys_auto == false)
+        {
+            if (eixo_x_valor < 1000)
+            {
+                umidadeSolo--;
+            }
+            if (eixo_x_valor > 3000)
+            {
+                umidadeSolo++;
+                temp = temp - (umidadeSolo % 2);
+            }
 
-        if((nv_tanque > 1) && (irrigacao == true)){
-            nv_tanque--;
+            // Controla o brilho do LED azul com base no eixo Y
+            if (eixo_y_valor < 1000)
+            {
+                temp--;
+            }
+            if (eixo_y_valor > 2200)
+            {
+                temp++;
+                umidadeSolo--;
+            }
         }
-        if(nv_tanque == 1){
-        nv_tanque = 1;}
-        umidadeSolo= umidadeSolo-(temp/100);
+        // FIM SIMULADOR-------------------------------------------
+    
+        
+        if ((temp > 47) || (umidadeSolo < 60))
+        {
+            irrigacao = true;
+            abastecimento = false;
+            sys_auto = false;
+           
+        }
+        if(irrigacao == true){
+            nv_tanque--;
+            temp = temp - (nv_tanque % 3);
+            if(temp < 6){
+                temp = 6;
+            }
+            umidadeSolo = umidadeSolo + (temp % 3);
+            if(umidadeSolo > 95){
+                umidadeSolo = 95;
+            }
+             abastecimento= false;
+            if (nv_tanque < 99)
+            {
+                if ((nv_tanque < 5) && (irrigacao == true))
+                {
+                    irrigacao = false;
+                    sys_auto= true;
+                    abastecimento= true;
+                }
+            }
 
-
-
-
-
+        }   
+        if(abastecimento == true){
+            nv_tanque++;
+           
+            sys_auto=true;
+            if(nv_tanque==99){
+                abastecimento = false;
+            }
+            
+        }     
+        if ((temp == 18) || (umidadeSolo == 90))
+        {
+            irrigacao = false;
+            sys_auto = true;
+        }
+    }
+        if ((sys_auto == true) && (irrigacao == false))
+        {
+            if ((cont % 50 == 0) && (irrigacao == false))
+            {
+                temp++;
+                umidadeSolo = umidadeSolo - (temp % 3);
+                radiacao = radiacao + (temp % 2);
+            }
+        }
+        cont++;
+        if (cont == 99)
+        {
+            cont = 0;
+        }
 
         printf("VARIAVEIS DA TELA\n");
-        printf("nivel1: %d\n", nv_tanque);        
-        printf("umidade: %d\n", umidadeSolo);        
-        printf("temperatura: %d\n", temp);        
-        printf("umidade: %d\n", umidadeSolo);        
+        printf("cont: %d\n", cont);
+        printf("nivel1: %d\n", nv_tanque);
+        printf("umidade: %d\n", umidadeSolo);
+        printf("temperatura: %d\n", temp);
+        printf("Raios UV: %d\n", radiacao);
+        printf("Irrigação: %d\n", irrigacao);
+        printf("abastecimento: %d\n", abastecimento);
+        printf("sysAuto: %d\n", sys_auto);
+        printf("status2: %d\n", status2);
+        printf("status: %d\n", status);
     }
     if (modo == 4)
     {
