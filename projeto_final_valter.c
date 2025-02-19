@@ -156,7 +156,7 @@ void interrupcao(uint gpio, uint32_t events)
             // Alterna o estado da variável led_ON
             quadro++;
 
-            if (quadro > 2)
+            if (quadro > 4)
             {
                 quadro = 1;
             }
@@ -226,10 +226,10 @@ void tela(int modo)
     {
         olho();
     }
-    /*if (modo == 4) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
+    if (modo == 4) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
     {
         monitor();
-    }*/
+    }
 }
 void sysIrricacao()
 {
