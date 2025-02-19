@@ -38,7 +38,7 @@ bool status = false;
 bool status2 = true;
 
 int quadro = 1; // tela de inicio
-int tx_atualizacao = 1000;
+int tx_atualizacao = 100;
 
 static volatile uint32_t last_time = 0;
 
@@ -156,7 +156,7 @@ void interrupcao(uint gpio, uint32_t events)
             // Alterna o estado da variável led_ON
             quadro++;
 
-            if (quadro > 3)
+            if (quadro > 2)
             {
                 quadro = 1;
             }
@@ -235,8 +235,7 @@ void sysIrricacao()
 {
    
 
-    bool B1 = false;
-    bool A1 = true;
+    
     int temp = 46;
     int umidadeSolo = 75;
     int radiacao = 0;
@@ -421,12 +420,11 @@ void ECG()
 
     // VARIAVEIS
     // obtendo dados analogicos
-    tx_atualizacao = 100;
     y_invert = (eixo_x_valor * 43) / 4000;
     x = cont % 67 + coluna;
     y = 63 - y_invert;
     y2 = 63 - (eixo_y_valor * 43) / 4000;
-
+    
     if (cont % 6 == 0)
     {
         pA = (eixo_x_valor * 22) / 4000;
@@ -437,8 +435,13 @@ void ECG()
         }
         else
         {
-            bpm = (mic * 160) / 4098;
+            bpm = ((mic * 160) / 4098)+(pA - 9)*8;
+            if (bpm >159){
+                bpm = 159;
+            }
+
         }
+        tx_atualizacao = 160-bpm+30;
         resp = pA * 3;
         temp_C = (pA2 * 84) / 14;
         sprintf(str_resp, "%d", resp);
@@ -459,7 +462,7 @@ void ECG()
         st_led_R = 0;
         gpio_put(LED_B, 0);
         st_led_B = 0;
-        sleep_ms(100);
+        sleep_ms(70);
     }
     config_pwm_beep(BUZZER_B, 0, 2000);
     st_bz_B = 0;
