@@ -15,6 +15,7 @@
 #include "include/pwm.c"
 #include "include/adc.c"
 
+
 // PROTOTIPOS
 void config_display();
 static void interrupcao(uint gpio, uint32_t events);
@@ -29,10 +30,17 @@ bool st_led_B = false;
 bool st_led_G = false;
 bool led_ON = false;
 bool status = false;
-int quadro = 4;
+bool status2 = false;
+int quadro = 3; //tela de inicio
 int tx_atualizacao = 1000;
 static volatile uint32_t last_time = 0;
-
+// VARIAVEIS QUADRO 3
+int temp = 33;
+int umidadeSolo=75;
+int radiacao = 0;   
+int nv_tanque = 99;
+bool irrigacao = false;
+bool sys_auto = false;
 // VARIAVEIS QUADRO 4
 bool obito = false;
 int cont = 0;
@@ -95,9 +103,6 @@ int main()
         printf("\n\n");
         printf("VALORES PARA DEPURAÇÃO\n");
         printf("SINAIS ANALOGICOS\n");
-        printf("X: %d\n", x);
-        printf("Y: %d\n", y);
-        printf("Y INVERT: %d\n", y_invert);
         printf("EIXO X: %d\n", eixo_x_valor);
         printf("EIXO Y: %d\n", eixo_y_valor);
         printf("MIC: %d\n", mic);
@@ -143,17 +148,42 @@ void interrupcao(uint gpio, uint32_t events)
         if (gpio == BT_B)
         {
             reset_usb_boot(0, 0);
+            if(quadro == 1){
+                status2 = !status2;  
+                
+            }
+            if(quadro == 2){
+                status2 = !status2;  
+                
+            }
+            if(quadro == 3){
+            status2 = !status2;               // Alterna entre ligado e desligado
+             
+            }// Ativa/desativa o PWM
+            if(quadro == 4){
+            }
+                         
+            
         }
 
         // Verifica se o botão BT_A foi pressionado e alterna o status do PWM
         if (gpio == BT_A)
         {
             if(quadro == 1){
-                status = !status;   
+                status = !status;  
+                
+            }
+            if(quadro == 2){
+                status = !status;  
+                
             }
             if(quadro == 3){
             status = !status;               // Alterna entre ligado e desligado
             pwm_set_enabled(slice, status); 
+            }// Ativa/desativa o PWM
+            if(quadro == 4){
+                          // Alterna entre ligado e desligado
+            pwm_set_enabled(LED_R, false); 
             }// Ativa/desativa o PWM
         }
     }
@@ -162,14 +192,15 @@ void tela(int modo)
 {
     if (modo == 1) // OLHOS MOVENDO
     {
+        gpio_put(LED_G, 0);st_led_G= 0;
+                gpio_put(LED_B, 0);st_led_B= 0;
+                gpio_put(LED_R, 0);st_led_R= 0;
         limpar_o_buffer();
         desenhar(matriz_1,64);
         escrever_no_buffer();
         // VARIAVEIS
         tx_atualizacao = 10;
-        gpio_put(LED_G,0);
-        gpio_put(LED_B, 0);
-        gpio_put(LED_R, 0);
+       
         int olho_esq_x;
         signed int olho_esq_y;
 
@@ -229,26 +260,84 @@ void tela(int modo)
             ssd1306_rect(&ssd, 55, 55, 5, 5, cor, cor);
             ssd1306_rect(&ssd, 55, 70, 5, 5, cor, cor);
             ssd1306_rect(&ssd, 60, 60, 10, 5, cor, cor);
+            config_pwm(LED_B, status);
+            config_pwm(LED_R, status);
+
+                // Controla o brilho do LED vermelho com base no eixo X
+            if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
+            {
+                pwm_set_gpio_level(LED_R, eixo_x_valor);st_led_R= 1;
+            }
+            else
+            {
+                pwm_set_gpio_level(LED_R, 0);st_led_R= 0;
+            }
+
+            // Controla o brilho do LED azul com base no eixo Y
+            if ((eixo_y_valor < 1500) || (eixo_y_valor > 2200))
+            {
+                pwm_set_gpio_level(LED_B, eixo_y_valor);st_led_B= 1;
+            }
+            else
+            {
+                pwm_set_gpio_level(LED_B, 0);st_led_B= 0;
+            }
 
 
-        }
-        else
-        {
-            // BOCA TRISTE
-            ssd1306_rect(&ssd, 60, 55, 5, 5, cor, cor);
-            ssd1306_rect(&ssd, 60, 70, 5, 5, cor, cor);
-            ssd1306_rect(&ssd, 55, 60, 10, 5, cor, cor);
-        }
+            }
+            else
+            {
+                // BOCA TRISTE
+                ssd1306_rect(&ssd, 60, 55, 5, 5, cor, cor);
+                ssd1306_rect(&ssd, 60, 70, 5, 5, cor, cor);
+                ssd1306_rect(&ssd, 55, 60, 10, 5, cor, cor);
+            }
         // IRIS MOVEL
         ssd1306_rect(&ssd, olho_esq_y, olho_esq_x, 15, 15, cor, status);
         ssd1306_rect(&ssd, olho_esq_y, olho_esq_x + 66, 15, 15, cor, status);
+
+         // EXIBIR VALORES PARA DEPURAÇÃO----------------------------------------------------------------------
+         printf("VARIAVEIS DA TELA\n");
+         printf("SORRISO: %d\n", status); 
+         printf("PWM_LED R e B: %d\n", status); 
     }
+    
     if (modo == 2) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
     {
         limpar_o_buffer();
         desenhar(matriz_2,64);
         escrever_no_buffer();
-        led_ON = true;
+        gpio_init(LED_R);
+            config_pwm(LED_B, status);
+            config_pwm(LED_R, status);
+            config_pwm_beep(BUZZER_A,status, 5000);
+            config_pwm_beep(BUZZER_B,status, 2000);
+            gpio_put(LED_G, status); st_led_G = status;
+
+                // Controla o brilho do LED vermelho com base no eixo X
+            if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
+            {
+                pwm_set_gpio_level(LED_R, eixo_x_valor);st_led_R= status;
+                pwm_set_gpio_level(BUZZER_A, eixo_x_valor);st_bz_A = status;
+            }
+            else
+            {
+                pwm_set_gpio_level(LED_R, 0);st_led_R= 0;
+                pwm_set_gpio_level(BUZZER_A, 0);st_bz_A = 0;
+            }
+            
+            // Controla o brilho do LED azul com base no eixo Y
+            if ((eixo_y_valor < 1500) || (eixo_y_valor > 2200))
+            {
+                pwm_set_gpio_level(LED_B, eixo_y_valor);st_led_B= status;
+                pwm_set_gpio_level(BUZZER_B, eixo_y_valor);st_bz_B = status;
+            }
+            else
+            {
+                pwm_set_gpio_level(LED_B, 0);st_led_B= 0;
+                pwm_set_gpio_level(BUZZER_B, 0);st_bz_B = 0;
+            }
+
         tx_atualizacao = 200;
 
         ssd1306_rect(&ssd, 0, 0, 127, 63, cor, !cor);
@@ -258,9 +347,14 @@ void tela(int modo)
         ssd1306_draw_string(&ssd, "G", 83, 3);
         ssd1306_draw_string(&ssd, "B", 103, 3);
         ssd1306_draw_string(&ssd, "STATUS", 3, 13);
+        ssd1306_draw_string(&ssd, "BUZZERS", 3, 23);
         ssd1306_rect(&ssd, 13, 63, 8, 8, cor, st_led_R);
         ssd1306_rect(&ssd, 13, 83, 8, 8, cor, gpio_get(LED_G));
         ssd1306_rect(&ssd, 13, 103, 8, 8, cor, st_led_B);
+        ssd1306_draw_string(&ssd, "A", 63, 23);
+        ssd1306_rect(&ssd, 23, 78, 8, 8, cor, st_bz_A);
+        ssd1306_draw_string(&ssd, "A", 93, 23);
+        ssd1306_rect(&ssd, 23, 108, 8, 8, cor, st_bz_B);
 
         ssd1306_rect(&ssd, 31, 1, 96, 32, cor, !cor);
         ssd1306_draw_string(&ssd, "MIC", 3, 33);
@@ -279,54 +373,93 @@ void tela(int modo)
     }
     if (modo == 3)
     {
+        
         limpar_o_buffer();
         desenhar(matriz_3,64);
         escrever_no_buffer();
         // VARIAVEIS
-        tx_atualizacao = 500;
-        int coluna = 60;
-        int x = cont % 67 + coluna;
-        int y_invert = (mic) % 43;
-        y = 63 - y_invert;
-        int pA = (y_invert * 190) / 43;
-        char str_pA[5];
-        sprintf(str_pA, "%d", pA); // Converte o inteiro em string
+        const int TEMP_MAX= 40;
+        const int UMID_MIN=50;
+        const int UV =70;
 
-        // DESENHO--------
-        ssd1306_rect(&ssd, 0, 60, 127 - 60, 18, cor, !cor);       // caixa menor
-        ssd1306_draw_string(&ssd, "pA", 64, 4);                   // pA
-        ssd1306_draw_string(&ssd, str_pA, 100, 4);                // VARIAVEL pA
-        ssd1306_rect(&ssd, 18, 60, 127 - 60, 63 - 18, cor, !cor); // caixa maior
-
-        ssd1306_rect(&ssd, 60, coluna, cont, 2, cor, cor); // LINHA FIXA ANTERIOR
-        // ESCALA CRESCENTE
-        ssd1306_rect(&ssd, y + ((61 - y) / 3) * 2, x, 2, (62 - y) / 3, cor, cor);
-        ssd1306_rect(&ssd, y + ((61 - y) / 3), x + 2, 2, (62 - y) / 3, cor, cor);
-        ssd1306_rect(&ssd, y, x + 4, 2, (62 - y) / 3, cor, cor);
-
-        ssd1306_rect(&ssd, y_invert, x + 4, 1, 1, cor, cor); // PONTO MOVEL
-
-        // ESCALA DECRESCENTE
-        ssd1306_rect(&ssd, y, x + 4, 2, (62 - y) / 3, cor, cor);
-        ssd1306_rect(&ssd, y + ((61 - y) / 3), x + 6, 2, (62 - y) / 3, cor, cor);
-        ssd1306_rect(&ssd, y + ((61 - y) / 3) * 2, x + 8, 2, (62 - y) / 3, cor, cor);
-
-        ssd1306_rect(&ssd, 60, x + 8, 127 - x, 2, cor, cor); // LINHA FIXA POSTERIOR
-
-        // EXIBIR VALORES PARA DEPURAÇÃO
-        printf("X: %d\n", x);
-        printf("Y: %d\n", y);
-        printf("Y INVERT: %d\n", y_invert);
-        printf("cont: %d\n", cont);
-
-        // beep(BUZZER_A, tx_atualizacao/2);
-
-        // CONTADOR PARA REINICIAR AO CHEGAR NO FINAL
-        cont++;
-        if (cont > 66)
+        tx_atualizacao = 30;       
+        radiacao= temp *2;     
+        char str_nv_tanque[5];
+        char str_umidadeSolo[5];
+        char str_radiacao[5];
+        char str_temp[5];
+        
+        sprintf(str_nv_tanque, "%d", nv_tanque);   // Converte o inteiro em string
+        sprintf(str_temp,"%d",  temp);
+        sprintf(str_radiacao,"%d", radiacao);
+        sprintf(str_umidadeSolo, "%d", umidadeSolo);
+        //SIMULAR TEMPERATURA JOYSTICK----------------------------
+        if (eixo_x_valor < 1000)
         {
-            cont = 0;
+            umidadeSolo--;
         }
+        if(eixo_x_valor > 3000)
+        {
+            umidadeSolo++;
+            temp= temp-(umidadeSolo % 2);
+        }
+
+        // Controla o brilho do LED azul com base no eixo Y
+        if (eixo_y_valor < 1000)
+        {
+            temp--;
+        }
+        if(eixo_y_valor > 2200)
+        {
+            temp++;
+            umidadeSolo--;
+        }
+        //FIM SIMULADOR-------------------------------------------
+        //LAYOUT TELA 3 ------------------------------------------       
+        ssd1306_draw_string(&ssd,"UMIDADE",2,2);
+        ssd1306_draw_string(&ssd,str_umidadeSolo,70,2);
+        ssd1306_draw_string(&ssd,"TEMP C",2,12);
+        ssd1306_draw_string(&ssd,str_temp,70,12);
+        ssd1306_draw_string(&ssd,"RAIO UV",2,22);
+        ssd1306_draw_string(&ssd,str_radiacao,70,22);
+        ssd1306_vline(&ssd, 87,0,HEIGHT-33,cor);
+       
+        ssd1306_draw_string(&ssd,"IRR",89,2);
+        ssd1306_draw_string(&ssd,"X",89,12);
+        ssd1306_draw_string(&ssd,"ABS",89,22);
+        ssd1306_rect(&ssd,2, WIDTH -10, 8,8 ,cor, status2 );
+        ssd1306_rect(&ssd,12, WIDTH -10, 8,8 ,cor,!cor );
+        ssd1306_rect(&ssd,22, WIDTH -10, 8,8 ,cor,status );
+
+
+        ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 33, cor);
+        ssd1306_draw_string(&ssd,"System Auto",2,HEIGHT -31);
+        ssd1306_rect(&ssd,HEIGHT -31, WIDTH -10, 8,8 ,cor,status); // alterar botao A
+        ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 22, cor);
+        ssd1306_draw_string(&ssd,"NIVEL TANQUE",12,HEIGHT -20);
+        ssd1306_draw_char(&ssd, '0' , 1, HEIGHT -10);
+        ssd1306_rect(&ssd, HEIGHT -10,9, nv_tanque, 8, cor,cor);
+        ssd1306_draw_string(&ssd, str_nv_tanque,12+nv_tanque,HEIGHT -10);
+        ssd1306_rect(&ssd, 0,0, WIDTH, HEIGHT, cor,!cor);
+        //FIM LAYOUT-----------------------------------------------------------
+
+        if((nv_tanque > 1) && (irrigacao == true)){
+            nv_tanque--;
+        }
+        if(nv_tanque == 1){
+        nv_tanque = 1;}
+        umidadeSolo= umidadeSolo-(temp/100);
+
+
+
+
+
+
+        printf("VARIAVEIS DA TELA\n");
+        printf("nivel1: %d\n", nv_tanque);        
+        printf("umidade: %d\n", umidadeSolo);        
+        printf("temperatura: %d\n", temp);        
+        printf("umidade: %d\n", umidadeSolo);        
     }
     if (modo == 4)
     {
@@ -335,9 +468,10 @@ void tela(int modo)
         escrever_no_buffer();
         adc_config();
        
+       
         // VARIAVEIS
         // obtendo dados analogicos
-        tx_atualizacao = 132;
+        tx_atualizacao = 120;
         y_invert = (eixo_x_valor * 43) / 4000;
         x = cont % 67 + coluna;
         y = 63 - y_invert;
@@ -350,15 +484,13 @@ void tela(int modo)
             if ((pA == 0) || (pA2 == 0))
             {
                 bpm = 0;
-                
-                ;
             }
             else
             {
                 bpm = (mic * 160) / 4098;
             }
             resp = pA * 3;
-            temp_C = (pA2*56)/ 14;
+            temp_C = (pA2*84)/ 14;
             sprintf(str_resp, "%d", resp);
             sprintf(str_temp_C, "%d", temp_C);
             sprintf(str_pA, "%d", pA);   // Converte o inteiro em string
@@ -464,7 +596,10 @@ void tela(int modo)
         printf("pA2: %d\n", pA2);
         printf("Bpm: %d\n", bpm);
         printf("Resp: %d\n", resp);
-        printf("C°: %d\n", temp_C);     
+        printf("C°: %d\n", temp_C);
+        printf("\nX: %d\n", x);
+        printf("Y: %d\n", y);
+        printf("Y INVERT: %d\n", y_invert);     
 
         // CONTADOR PARA REINICIAR AO CHEGAR NO FINAL----------------------------------------------------------
         cont = cont + 1;

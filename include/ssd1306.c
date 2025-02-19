@@ -193,3 +193,12 @@ void  ssd1306_draw_string(ssd1306_t *ssd, const char *str, uint8_t x, uint8_t y)
     }
   }
 }
+void ssd1306_draw_bitmap(ssd1306_t *ssd, uint8_t x, uint8_t y, const uint8_t *bitmap, uint8_t width, uint8_t height) {
+  for (uint8_t i = 0; i < height; i++) {
+      for (uint8_t j = 0; j < width; j++) {
+          if (bitmap[i] & (1 << (7 - j))) { // Verifica se o bit está ativo
+              ssd1306_pixel(ssd, x + j, y + i, true);
+          }
+      }
+  }
+}
