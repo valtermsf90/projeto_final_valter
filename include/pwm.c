@@ -32,4 +32,10 @@ void config_pwm_beep(pino, flag, Hz)
   pwm_set_enabled(slice, flag);
 }
 
-// Função para tocar uma nota
+void desativar_pwm() {
+  pwm_set_gpio_level(LED_R, 0);
+  pwm_set_gpio_level(LED_G, 0);
+  pwm_set_gpio_level(LED_B, 0);
+  pwm_set_gpio_level(BUZZER_A, 0);
+  pwm_set_gpio_level(BUZZER_B, 0);
+}

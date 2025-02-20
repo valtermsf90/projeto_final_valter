@@ -151,9 +151,7 @@ void interrupcao(uint gpio, uint32_t events)
         // Verifica se o botão BT_J foi pressionado
         if (gpio == BT_J)
         {
-            pwm_set_gpio_level(LED_B, 0);
-            pwm_set_gpio_level(LED_R, 0);
-            // Alterna o estado da variável led_ON
+            desativar_pwm();            // Alterna o estado da variável led_ON
             quadro++;
 
             if (quadro > 4)
