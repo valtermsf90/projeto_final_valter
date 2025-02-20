@@ -227,8 +227,8 @@
     {
       "type": "wokwi-text",
       "id": "text21",
-      "top": 230.4,
-      "left": 38.4,
+      "top": 220.8,
+      "left": 28.8,
       "attrs": { "text": "SSD1306" }
     },
     {
@@ -245,7 +245,22 @@
       "left": 182.4,
       "attrs": { "value": "5000" }
     },
-    { "type": "wokwi-logo", "id": "logo1", "top": -403.2, "left": -96, "attrs": {} }
+    { "type": "wokwi-logo", "id": "logo1", "top": -403.2, "left": -96, "attrs": {} },
+    { "type": "wokwi-potentiometer", "id": "pot1", "top": 161.9, "left": 143.8, "attrs": {} },
+    {
+      "type": "wokwi-text",
+      "id": "text22",
+      "top": 249.6,
+      "left": 96,
+      "attrs": { "text": "MIC (POTECIOMETRO)" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text23",
+      "top": -316.8,
+      "left": 96,
+      "attrs": { "text": "GPIO 28" }
+    }
   ],
   "connections": [
     [ "pico:GP0", "$serialMonitor:RX", "", [] ],
@@ -293,7 +308,10 @@
     [ "r2:1", "vcc2:VCC", "red", [ "h-9.6", "v-9.6" ] ],
     [ "r3:1", "vcc2:VCC", "red", [ "h-19.2", "v-9.6", "h19.2" ] ],
     [ "pico:GP15", "r3:2", "blue", [ "h-19.2", "v28.84", "h336", "v259.2" ] ],
-    [ "pico:GP14", "r2:2", "green", [ "h-28.8", "v19.24", "h355.2", "v259.2" ] ]
+    [ "pico:GP14", "r2:2", "green", [ "h-28.8", "v19.24", "h355.2", "v259.2" ] ],
+    [ "pot1:VCC", "vcc3:VCC", "red", [ "v9.6", "h-461.6", "v-57.6" ] ],
+    [ "pico:GP28", "pot1:SIG", "green", [ "h77.11", "v-19.2", "h220.8", "v547.2", "h-105.2" ] ],
+    [ "pot1:GND", "gnd2:GND", "black", [ "v19.2", "h-48", "v-163.2" ] ]
   ],
   "dependencies": {}
 }
