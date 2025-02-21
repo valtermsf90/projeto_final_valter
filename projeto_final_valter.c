@@ -125,6 +125,9 @@ int main()
         printf("LED G: %d\n", st_led_G);
         printf("BUZZER A: %d\n", st_bz_A);
         printf("BUZZER B: %d\n", st_bz_B);
+        printf("BOTÃO A: %d\n", gpio_get(BT_A));
+        printf("BOTÃO B: %d\n", gpio_get(BT_B));
+        printf("BOTAO J: %d\n", gpio_get(BT_J));
         printf("\nINFORMÇÕES DA EXCUÇÃO\n");
         printf("TIMER: %d\n", tx_atualizacao);
         printf("TELA %d\n", quadro);
