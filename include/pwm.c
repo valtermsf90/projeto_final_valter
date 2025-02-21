@@ -22,7 +22,7 @@ void config_pwm(pino, flag)
 }
 void config_pwm_beep(pino, flag, Hz)
 {
-  long int  fClock =  12500;
+  long int  fClock =  125000000;
   int div_beep = fClock / Hz;
   gpio_set_function(pino, GPIO_FUNC_PWM);
   slice = pwm_gpio_to_slice_num(pino);

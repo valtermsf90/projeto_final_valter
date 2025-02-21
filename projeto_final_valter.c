@@ -30,9 +30,7 @@ int cont = 0;
 bool cor = true;
 bool st_bz_A = 0;
 bool st_bz_B = 0;
-bool st_led_R = false;
-bool st_led_B = false;
-bool st_led_G = false;
+
 bool led_ON = false;
 bool status = false;
 bool status2 = true;
@@ -45,10 +43,10 @@ static volatile uint32_t last_time = 0;
 // VARIAVEIS QUADRO 01
 bool B1 = false;
 bool A1 = true;
-int temp = 46;
-int umidadeSolo = 75;
+int temp = 18;
+int umidadeSolo = 32;
 int radiacao = 0;
-int nv_tanque = 20;
+int nv_tanque = 54;
 bool abastecimento = false;
 bool irrigacao = false;
 bool sys_auto = false;
@@ -151,12 +149,19 @@ void interrupcao(uint gpio, uint32_t events)
         // Verifica se o botão BT_J foi pressionado
         if (gpio == BT_J)
         {
-            desativar_pwm();            // Alterna o estado da variável led_ON
+
+            cont = 0;
             quadro++;
 
             if (quadro > 4)
             {
                 quadro = 1;
+                gpio_init(LED_G);
+                gpio_set_dir(LED_G, GPIO_OUT);
+                gpio_init(LED_R);
+                gpio_set_dir(LED_R, GPIO_OUT);
+                gpio_init(LED_B);
+                gpio_set_dir(LED_B, GPIO_OUT);
             }
         }
 
@@ -213,6 +218,7 @@ void tela(int modo)
 {
     if (modo == 1)
     {
+
         sysIrricacao();
     }
 
@@ -229,12 +235,10 @@ void tela(int modo)
         monitor();
     }
 }
+
 void sysIrricacao()
 {
-       
-    
 
-    gpio_set_dir(LED_R, GPIO_OUT);
     limpar_o_buffer();
     desenhar(matriz_1, 64);
     escrever_no_buffer();
@@ -243,7 +247,7 @@ void sysIrricacao()
     const int UMID_MIN = 50;
     const int UV = 70;
     power_sys = A1;
-    tx_atualizacao = 5;
+    tx_atualizacao = 10;
 
     radiacao = temp * 2;
     char str_nv_tanque[5];
@@ -316,6 +320,7 @@ void sysIrricacao()
     else
     {
         amarelo(0);
+
         piscar(cont, 7);
 
         sys_auto = B1;
@@ -329,13 +334,16 @@ void sysIrricacao()
             if ((cont % 50 == 0) && (irrigacao == false))
             {
                 temp++;
-                umidadeSolo = umidadeSolo - (temp % 3);
                 radiacao = radiacao + (temp % 2);
+            }
+            if ((cont % 30 == 0) && (irrigacao == false))
+            {
+                umidadeSolo = umidadeSolo - (temp / 10);
             }
         }
         if (sys_auto == true)
         {
-            if ((temp > 45) || (umidadeSolo < 40))
+            if (umidadeSolo < 30)
             {
                 irrigacao = true;
                 abastecimento = false;
@@ -343,19 +351,24 @@ void sysIrricacao()
             if (irrigacao == true)
             {
                 ciano(0);
+
                 piscar(cont, 7);
                 nv_tanque--;
-                temp = temp - (nv_tanque % 3);
-                if (temp < 5)
+                if (nv_tanque % 4 == 0)
                 {
-                    temp = 5;
+                    temp--;
                 }
-                umidadeSolo = umidadeSolo + (temp % 3);
-                if (umidadeSolo > 95)
+                if (temp < 12)
                 {
-                    umidadeSolo = 95;
+                    temp = 12;
+                }
+                umidadeSolo++;
+                if (umidadeSolo > 99)
+                {
+                    umidadeSolo = 99;
                 }
                 abastecimento = false;
+
                 if (nv_tanque < 99)
                 {
                     if ((nv_tanque < 5) && (irrigacao == true))
@@ -370,15 +383,16 @@ void sysIrricacao()
                 azul(0);
                 piscar(cont, 7);
                 nv_tanque++;
-                if (nv_tanque == 99)
+                if (nv_tanque > 99)
                 {
+                    nv_tanque = 99;
                     abastecimento = false;
                 }
             }
-            if ((temp < 15) || (umidadeSolo > 90))
+            if (umidadeSolo > 80)
             {
                 irrigacao = false;
-                abastecimento = true;
+                // abastecimento = true;
             }
         }
     }
@@ -414,7 +428,7 @@ void ECG()
     x = cont % 67 + coluna;
     y = 63 - y_invert;
     y2 = 63 - (eixo_y_valor * 43) / 4000;
-    
+
     if (cont % 6 == 0)
     {
         pA = (eixo_x_valor * 22) / 4000;
@@ -425,23 +439,27 @@ void ECG()
         }
         else
         {
-            bpm = ((mic * 160) / 4098)+(pA - 9)*8;
-            if (bpm >159){
+            bpm = ((mic * 160) / 4098) + (pA - 9) * 8;
+            if (bpm > 159)
+            {
                 bpm = 159;
             }
-
         }
-        tx_atualizacao = 160-bpm+30;
+        tx_atualizacao = 160 - bpm + 20;
         resp = pA * 3;
         temp_C = (pA2 * 84) / 14;
+        if (temp_C > 45)
+        {
+            temp_C = 45;
+        }
         sprintf(str_resp, "%d", resp);
         sprintf(str_temp_C, "%d", temp_C);
         sprintf(str_pA, "%d", pA);   // Converte o inteiro em string
         sprintf(str_pA2, "%d", pA2); // Converte o inteiro em string
         sprintf(str_bpm, "%d", bpm);
-        config_pwm_beep(BUZZER_B, 1, 2000);
+        config_pwm_beep(BUZZER_B, 1, 20000000);
         st_bz_B = 1;
-        config_pwm_beep(BUZZER_A, 1, 2000);
+        config_pwm_beep(BUZZER_A, 1, 20000000);
         st_bz_A = 1;
     }
     if ((cont % 6 == 0) && (obito == false))
@@ -454,15 +472,15 @@ void ECG()
         st_led_B = 0;
         sleep_ms(70);
     }
-    config_pwm_beep(BUZZER_B, 0, 2000);
+    config_pwm_beep(BUZZER_B, 0, 20000000);
     st_bz_B = 0;
-    config_pwm_beep(BUZZER_A, 0, 2000);
+    config_pwm_beep(BUZZER_A, 0, 20000000);
     st_bz_A = 0;
 
     // BPM----------------------------------------------------------------------+
     ssd1306_rect(&ssd, 0, 0, coluna, 21, A2, !A2); // caixa menor   |
     ssd1306_draw_string(&ssd, "BPM", 2, 2);        // BPM           |
-    ssd1306_draw_string(&ssd, str_bpm, 37, 2);     //
+    ssd1306_draw_string(&ssd, str_bpm, 30, 2);     //
     ssd1306_line(&ssd, 0, 18, cont, 18, A2);
     ssd1306_line(&ssd, 2 + cont, 18, 10 + cont, 18 - ((bpm * 10) / 160), A2); //|
     ssd1306_line(&ssd, 10 + cont, 18 - ((bpm * 10) / 160), 18 + cont, 18, A2);
@@ -517,9 +535,9 @@ void ECG()
             st_led_R = 1;
             gpio_put(LED_G, 0);
             st_led_G = 0;
-            config_pwm_beep(BUZZER_A, 1, 2000);
+            config_pwm_beep(BUZZER_A, 1, 20000000);
             st_bz_A = 1;
-            config_pwm_beep(BUZZER_B, 1, 2000);
+            config_pwm_beep(BUZZER_B, 1, 20000000);
             st_bz_B = 1;
             obito = true;
 
@@ -569,9 +587,9 @@ void ECG()
             st_led_R = 1;
             gpio_put(LED_B, 0);
             st_led_B = 0;
-            config_pwm_beep(BUZZER_A, 1, 2000);
+            config_pwm_beep(BUZZER_A, 1, 20000000);
             st_bz_A = 1;
-            config_pwm_beep(BUZZER_B, 1, 2000);
+            config_pwm_beep(BUZZER_B, 1, 20000000);
             st_bz_B = 1;
             obito = true;
         }
@@ -678,8 +696,8 @@ void olho()
         ssd1306_rect(&ssd, 55, 55, 5, 5, cor, cor);
         ssd1306_rect(&ssd, 55, 70, 5, 5, cor, cor);
         ssd1306_rect(&ssd, 60, 60, 10, 5, cor, cor);
-      //  config_pwm(LED_B, status);
-        //config_pwm(LED_R, status);
+        //  config_pwm(LED_B, status);
+        // config_pwm(LED_R, status);
 
         // Controla o brilho do LED vermelho com base no eixo X
         if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
@@ -738,8 +756,8 @@ void monitor()
     gpio_init(LED_R);
     config_pwm(LED_B, A4);
     config_pwm(LED_R, A4);
-    config_pwm_beep(BUZZER_A, B4, 5000);
-    config_pwm_beep(BUZZER_B, B4, 2000);
+    config_pwm_beep(BUZZER_A, B4, 50000000);
+    config_pwm_beep(BUZZER_B, B4, 20000000);
     gpio_put(LED_G, B4);
     st_led_G = B4;
 

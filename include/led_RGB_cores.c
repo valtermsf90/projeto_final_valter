@@ -7,6 +7,10 @@
 
 #define TIME 300
 
+bool st_led_R = false;
+bool st_led_B = false;
+bool st_led_G = false;
+
 // Funções para controle de cores
 
 // Função para apagar todos os leds
@@ -19,6 +23,9 @@ void apagado(int tempo)
   gpio_put(LED_R, 0);
   gpio_put(LED_B, 0);
   gpio_put(LED_G, 0);
+  st_led_B=0;
+  st_led_G=0;
+  st_led_R=0;
  
   
 }
@@ -28,6 +35,9 @@ void ciano(int tempo)
   gpio_put(LED_R, 0);
   gpio_put(LED_B, 1);
   gpio_put(LED_G, 1);
+  st_led_R=0;
+  st_led_B=1;
+  st_led_G=1;
 
 }
 // Função para acender o led R, G e B
@@ -36,6 +46,9 @@ void branco(int tempo)
   gpio_put(LED_R, 1);
   gpio_put(LED_B, 1);
   gpio_put(LED_G, 1);
+  st_led_B=1;
+  st_led_G=1;
+  st_led_R=1;
   
 }
 // Função para acender o led R e B
@@ -44,6 +57,10 @@ void rosa(int tempo)
   gpio_put(LED_R, 1);
   gpio_put(LED_B, 1);
   gpio_put(LED_G, 0);
+  st_led_R=1;
+  st_led_B=1;
+  st_led_G=0;
+
  
 }
 // Função para acender o led R e G
@@ -52,6 +69,10 @@ void amarelo(int tempo)
   gpio_put(LED_R, 1);
   gpio_put(LED_B, 0);
   gpio_put(LED_G, 1);
+  st_led_R=1;
+  st_led_B=0;
+  st_led_G=1;
+
  
 }
 // Função para acender o led R
@@ -60,6 +81,10 @@ void vermelho(int tempo)
   gpio_put(LED_R, 1);
   gpio_put(LED_B, 0);
   gpio_put(LED_G, 0);
+  st_led_R=1;
+  st_led_B=0;
+  st_led_G=0;
+
  
 }
 // Função para acender o led B
@@ -68,6 +93,10 @@ void azul(int tempo)
   gpio_put(LED_R, 0);
   gpio_put(LED_B, 1);
   gpio_put(LED_G, 0);
+  st_led_R=0;
+  st_led_B=1;
+  st_led_G=0;
+
   
 }
 // Função para acender o led G
@@ -76,5 +105,9 @@ void verde(int tempo)
   gpio_put(LED_R, 0);
   gpio_put(LED_B, 0);
   gpio_put(LED_G, 1);
+  st_led_R=0;
+  st_led_B=0;
+  st_led_G=1;
+
  
 }
