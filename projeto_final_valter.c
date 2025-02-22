@@ -50,6 +50,7 @@ int umidadeSoloMin = 30;
 int umidadeSolo = 32;
 int radiacao = 0;
 int nv_tanque = 54;
+int nv_tanqueMin = 1;
 bool abastecimento = false;
 bool irrigacao = false;
 bool sys_auto = false;
@@ -89,6 +90,7 @@ bool A11 = true;
 bool B11 = false;
 char str_umidadeMax[5];
 char str_umidadeMin[5];
+char str_nv_tanqueMin[5];
 // inicio
 int main()
 {
@@ -370,7 +372,7 @@ void sysIrricacao()
                 irrigacao = true;
                 abastecimento = false;
             }
-            if ((irrigacao == true)&&(nv_tanque>1))
+            if ((irrigacao == true)&&(nv_tanque>nv_tanqueMin))
             {
                 ciano(0);
 
@@ -388,7 +390,7 @@ void sysIrricacao()
                     temp = 12;
                 }
                 
-                if (nv_tanque ==1)
+                if (nv_tanque ==nv_tanqueMin)
                 {
                     irrigacao = false;
                     abastecimento = true;
@@ -855,6 +857,8 @@ void config_sysIrr()
 
     sprintf(str_umidadeMax, "%d", umidadeSoloMax);
     sprintf(str_umidadeMin, "%d", umidadeSoloMin);
+    sprintf(str_nv_tanqueMin, "%d", nv_tanqueMin);
+    
 
     ssd1306_rect(&ssd, 0, 0, WIDTH, HEIGHT, cor, !cor);
     ssd1306_rect(&ssd, 10, 0, WIDTH, 11, cor, !cor);
@@ -871,13 +875,15 @@ void config_sysIrr()
     ssd1306_draw_string(&ssd, str_umidadeMin, 14, 38);
 
     ssd1306_draw_string(&ssd, str_umidadeMax, 55, 38);
-   ssd1306_draw_bitmap(&ssd, 28, 60, cima);
-    ssd1306_draw_bitmap(&ssd, 29, 15, baixo);
-    ssd1306_draw_bitmap(&ssd, 69, 60, cima);
+    ssd1306_draw_string(&ssd, str_nv_tanqueMin, 96, 38);
+    ssd1306_draw_bitmap(&ssd, 28, 60, cima);
+     ssd1306_draw_bitmap(&ssd, 29, 15, baixo);
+/*    ssd1306_draw_bitmap(&ssd, 69, 60, cima);
     ssd1306_draw_bitmap(&ssd, 70, 15, baixo);
     ssd1306_draw_bitmap(&ssd, 110, 60, cima);
-    ssd1306_draw_bitmap(&ssd, 111, 15, baixo);
-
+    ssd1306_draw_bitmap(&ssd, 111, 15, baixo);*/
+if(quadro == 2){
+    int x = 28;
     if (eixo_x_valor < 1000)
     {
         umidadeSoloMin--;
@@ -912,6 +918,7 @@ void config_sysIrr()
             umidadeSoloMax = 99;
         }
     }
+}
 
     printf("cont: %d\n", cont);
     printf("nivel1: %d\n", nv_tanque);
