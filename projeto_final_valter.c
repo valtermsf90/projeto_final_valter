@@ -187,7 +187,17 @@ void interrupcao(uint gpio, uint32_t events)
             cont = 0;
             quadro++;
 
-            if (quadro > 4)
+            if (quadro == 4)
+            {
+                quadro = 1;
+                gpio_init(LED_G);
+                gpio_set_dir(LED_G, GPIO_OUT);
+                gpio_init(LED_R);
+                gpio_set_dir(LED_R, GPIO_OUT);
+                gpio_init(LED_B);
+                gpio_set_dir(LED_B, GPIO_OUT);
+            }
+            if (quadro == 6)
             {
                 quadro = 1;
                 gpio_init(LED_G);
@@ -215,9 +225,9 @@ void interrupcao(uint gpio, uint32_t events)
             if (quadro == 3)
             {
                 B3 = !B3; // Alterna entre ligado e desligado
-                
+                quadro = 5;
             }
-            if (quadro == 4)
+            if (quadro == 5)
             {
                 B4 = !B4; // Alterna entre ligado e desligado
                 
@@ -263,7 +273,7 @@ void tela(int modo)
     {
         config_valvulas();
     }
-    if (modo == 4) // INFORAMÇÕES DOS LEDS E BOTÕES( EIXOS E MIC E BUTTON)
+    if (modo == 5) // INFORAMÇÕES DOS LEDS E BOTÕES( EIXOS E MIC E BUTTON)
     {
         monitor();
     }
@@ -277,7 +287,7 @@ void sysIrricacao()
     desenhar(matriz_1, 64);
     escrever_no_buffer();
     // VARIAVEIS
-
+    
     power_sys = A1;
     tx_atualizacao = 10;
 
@@ -374,7 +384,7 @@ void sysIrricacao()
             {
                 vermelho(0);
                 piscar(cont, 5);
-            }
+    }
             else // se o sistema estiver em modo manual
             {
                 verde(0);
