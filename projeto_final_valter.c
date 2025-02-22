@@ -35,7 +35,7 @@ bool st_bz_B = 0;
 bool led_ON = false;
 bool status = false;
 bool status2 = true;
-
+int seletor = 0;
 int quadro = 2; // tela de inicio
 int tx_atualizacao = 100;
 
@@ -91,6 +91,8 @@ bool B11 = false;
 char str_umidadeMax[5];
 char str_umidadeMin[5];
 char str_nv_tanqueMin[5];
+int selecao=0;
+
 // inicio
 int main()
 {
@@ -855,23 +857,24 @@ void monitor()
 }
 void config_sysIrr()
 {
-    /*if (quadro == 2)
-    {*/
-        x=18; 
-        int selecao = 0;
+    
+    if (quadro == 2)
+    {
+        seletor=18; 
+        
         sprintf(str_umidadeMax, "%d", umidadeSoloMax);
         sprintf(str_umidadeMin, "%d", umidadeSoloMin);
         sprintf(str_nv_tanqueMin, "%d", nv_tanqueMin);
-        ssd1306_draw_bitmap(&ssd, x, 47, baixo);
-        ssd1306_draw_bitmap(&ssd,x, 28, cima);
+        ssd1306_draw_bitmap(&ssd,seletor+(selecao*41) , 47, baixo);
+        ssd1306_draw_bitmap(&ssd,seletor+(selecao*41), 28, cima);
         
         ssd1306_rect(&ssd, 0, 0, 127, 63, cor, !cor);
         ssd1306_rect(&ssd, 10, 0, 127, 11, cor, !cor);
         ssd1306_vline(&ssd, 41, 10, 63, true);
         ssd1306_vline(&ssd, 82, 0, 63, true);
 
-        ssd1306_draw_string(&ssd, "CONFIGURAR", 2, 2);
-        ssd1306_draw_string(&ssd, "BOIA", 92, 2);
+        ssd1306_draw_string(&ssd, "UMIDADE", 2, 2);
+        ssd1306_draw_string(&ssd, "AGUA", 92, 2);
         ssd1306_draw_string(&ssd, "MIN", 6, 12);
         ssd1306_draw_string(&ssd, "MAX", 50, 12);
         ssd1306_draw_string(&ssd, "MIN", 94, 12);
@@ -880,11 +883,90 @@ void config_sysIrr()
         ssd1306_draw_string(&ssd, str_umidadeMax, 55, 38);
         ssd1306_draw_string(&ssd, str_nv_tanqueMin, 96, 38);
         
-       
+        if (eixo_x_valor < 1000)
+        {
+            selecao--;
+            if (selecao < 0)
+            {
+                selecao = 0;                               
+            }
+            
+        }
+        if (eixo_x_valor > 3000)
+        {
+            selecao++;
+            if (selecao > 2)
+            {
+                selecao = 2;
+                
+            }
+           
+           
+        }
+
+        // Controla o brilho do LED azul com base no eixo Y
+        if (eixo_y_valor < 1000)
+        {
+            if (selecao == 0)
+            {
+                umidadeSoloMin--;
+                if (umidadeSoloMin < 1)
+                {
+                    umidadeSoloMin = 0;
+                }
+            }
+
+            if (selecao == 1)
+            {
+                umidadeSoloMax--;
+                if (umidadeSoloMax == umidadeSoloMin)
+                {
+                    umidadeSoloMax = umidadeSoloMin + 1;
+                }
+            }
+
+            if (selecao == 2)
+            {
+                nv_tanqueMin--;
+                if (nv_tanqueMin < 1)
+                {
+                    nv_tanqueMin = 1;
+                }
+            }
+        }
+
+        if (eixo_y_valor > 3000)
+        {
+            
+            if (selecao == 0)
+            {
+                umidadeSoloMin++;
+                if (umidadeSoloMin == umidadeSoloMax)
+                {
+                    umidadeSoloMin = umidadeSoloMax - 1;
+                }}
+                if (selecao == 1)
+                {
+                    umidadeSoloMax++;
+                    if (umidadeSoloMax > 99)
+                    {
+                        umidadeSoloMax = 99;
+                    }
+                }
+                if (selecao == 2)
+                {
+                    nv_tanqueMin++;
+                    if (nv_tanqueMin > 99)
+                    {
+                        nv_tanqueMin = 99;
+                    }
+                }
+            
+        }
          
 
         
-
+        printf("selecao: %d", selecao);
         printf("cont: %d\n", cont);
         printf("nivel1: %d\n", nv_tanque);
         printf("Umidade MAX: %d\n", umidadeSoloMax);
@@ -898,4 +980,4 @@ void config_sysIrr()
         printf("PowerSys    : %d\n", power_sys);
         printf("status: %d\n", status);
         }
-//}
+}
