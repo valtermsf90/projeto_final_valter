@@ -36,7 +36,7 @@ bool led_ON = false;
 bool status = false;
 bool status2 = true;
 
-int quadro = 1; // tela de inicio
+int quadro = 2; // tela de inicio
 int tx_atualizacao = 100;
 
 static volatile uint32_t last_time = 0;
@@ -311,6 +311,7 @@ void sysIrricacao()
     // FIM LAYOUT-----------------------------------------------------------
     if (power_sys == false)
     {
+        
         apagado(0);
         sys_auto = power_sys;
         irrigacao = false;
@@ -372,15 +373,15 @@ void sysIrricacao()
                 irrigacao = true;
                 abastecimento = false;
             }
-            if ((irrigacao == true)&&(nv_tanque>nv_tanqueMin))
+            if ((irrigacao == true) && (nv_tanque > nv_tanqueMin))
             {
                 ciano(0);
 
                 piscar(cont, 7);
-                
+
                 nv_tanque--;
                 umidadeSolo++;
-                
+
                 if (nv_tanque % 4 == 0)
                 {
                     temp--;
@@ -389,15 +390,15 @@ void sysIrricacao()
                 {
                     temp = 12;
                 }
-                
-                if (nv_tanque ==nv_tanqueMin)
+
+                if (nv_tanque == nv_tanqueMin)
                 {
                     irrigacao = false;
                     abastecimento = true;
                 }
                 if (umidadeSolo == umidadeSoloMax)
                 {
-                    
+
                     irrigacao = false;
                 }
             }
@@ -854,82 +855,47 @@ void monitor()
 }
 void config_sysIrr()
 {
+    /*if (quadro == 2)
+    {*/
+        x=18; 
+        int selecao = 0;
+        sprintf(str_umidadeMax, "%d", umidadeSoloMax);
+        sprintf(str_umidadeMin, "%d", umidadeSoloMin);
+        sprintf(str_nv_tanqueMin, "%d", nv_tanqueMin);
+        ssd1306_draw_bitmap(&ssd, x, 47, baixo);
+        ssd1306_draw_bitmap(&ssd,x, 28, cima);
+        
+        ssd1306_rect(&ssd, 0, 0, 127, 63, cor, !cor);
+        ssd1306_rect(&ssd, 10, 0, 127, 11, cor, !cor);
+        ssd1306_vline(&ssd, 41, 10, 63, true);
+        ssd1306_vline(&ssd, 82, 0, 63, true);
 
-    sprintf(str_umidadeMax, "%d", umidadeSoloMax);
-    sprintf(str_umidadeMin, "%d", umidadeSoloMin);
-    sprintf(str_nv_tanqueMin, "%d", nv_tanqueMin);
-    
+        ssd1306_draw_string(&ssd, "CONFIGURAR", 2, 2);
+        ssd1306_draw_string(&ssd, "BOIA", 92, 2);
+        ssd1306_draw_string(&ssd, "MIN", 6, 12);
+        ssd1306_draw_string(&ssd, "MAX", 50, 12);
+        ssd1306_draw_string(&ssd, "MIN", 94, 12);
 
-    ssd1306_rect(&ssd, 0, 0, WIDTH, HEIGHT, cor, !cor);
-    ssd1306_rect(&ssd, 10, 0, WIDTH, 11, cor, !cor);
-    ssd1306_vline(&ssd, 41,10, 63, true);
-    ssd1306_vline(&ssd,82,0, 63, true);
-   
-    ssd1306_draw_string(&ssd, "CONFIGURAR", 2, 2);
-    ssd1306_draw_string(&ssd, "BOIA", 92, 2);
-    ssd1306_draw_string(&ssd, "MIN", 6, 12);
-    ssd1306_draw_string(&ssd, "MAX", 50, 12);
-    ssd1306_draw_string(&ssd, "MIN", 94, 12);
-   
+        ssd1306_draw_string(&ssd, str_umidadeMin, 14, 38);
+        ssd1306_draw_string(&ssd, str_umidadeMax, 55, 38);
+        ssd1306_draw_string(&ssd, str_nv_tanqueMin, 96, 38);
+        
+       
+         
 
-    ssd1306_draw_string(&ssd, str_umidadeMin, 14, 38);
+        
 
-    ssd1306_draw_string(&ssd, str_umidadeMax, 55, 38);
-    ssd1306_draw_string(&ssd, str_nv_tanqueMin, 96, 38);
-    ssd1306_draw_bitmap(&ssd, 28, 60, cima);
-     ssd1306_draw_bitmap(&ssd, 29, 15, baixo);
-/*    ssd1306_draw_bitmap(&ssd, 69, 60, cima);
-    ssd1306_draw_bitmap(&ssd, 70, 15, baixo);
-    ssd1306_draw_bitmap(&ssd, 110, 60, cima);
-    ssd1306_draw_bitmap(&ssd, 111, 15, baixo);*/
-if(quadro == 2){
-    int x = 28;
-    if (eixo_x_valor < 1000)
-    {
-        umidadeSoloMin--;
-        if (umidadeSoloMin < 1)
-        {
-            umidadeSoloMin = 1;
+        printf("cont: %d\n", cont);
+        printf("nivel1: %d\n", nv_tanque);
+        printf("Umidade MAX: %d\n", umidadeSoloMax);
+        printf("Umidade MiN: %d\n", umidadeSoloMin);
+        printf("umidade: %d\n", umidadeSolo);
+        printf("temperatura: %d\n", temp);
+        printf("Raios UV: %d\n", radiacao);
+        printf("Irrigação: %d\n", irrigacao);
+        printf("abastecimento: %d\n", abastecimento);
+        printf("sysAuto: %d\n", sys_auto);
+        printf("PowerSys    : %d\n", power_sys);
+        printf("status: %d\n", status);
         }
-    }
-    if (eixo_x_valor > 3000)
-    {
-        umidadeSoloMin++;
-        if (umidadeSoloMin == umidadeSoloMax)
-        {
-            umidadeSoloMin = umidadeSoloMax - 1;
-        }
-    }
-
-    // Controla o brilho do LED azul com base no eixo Y
-    if (eixo_y_valor < 1000)
-    {
-        umidadeSoloMax--;
-        if (umidadeSoloMax == umidadeSoloMin)
-        {
-            umidadeSoloMax = umidadeSoloMin + 1;
-        }
-    }
-    if (eixo_y_valor > 3000)
-    {
-        umidadeSoloMax++;
-        if (umidadeSoloMax > 99)
-        {
-            umidadeSoloMax = 99;
-        }
-    }
-}
-
-    printf("cont: %d\n", cont);
-    printf("nivel1: %d\n", nv_tanque);
-    printf("Umidade MAX: %d\n", umidadeSoloMax);
-    printf("Umidade MiN: %d\n", umidadeSoloMin);
-    printf("umidade: %d\n", umidadeSolo);
-    printf("temperatura: %d\n", temp);
-    printf("Raios UV: %d\n", radiacao);
-    printf("Irrigação: %d\n", irrigacao);
-    printf("abastecimento: %d\n", abastecimento);
-    printf("sysAuto: %d\n", sys_auto);
-    printf("PowerSys    : %d\n", power_sys);
-    printf("status: %d\n", status);
-}
+//}
