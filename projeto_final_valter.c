@@ -25,19 +25,19 @@ void config_sysIrr();
 void config_valvulas();
 
 // VARIAVEL GLOBAL
-int cont = 0; // CONTADOR
-bool cor = true; // COR DO RETANGULO
-bool st_bz_A = 0; //status buzzer A
-bool st_bz_B = 0;//status buzzer B
+int cont = 0;     // CONTADOR
+bool cor = true;  // COR DO RETANGULO
+bool st_bz_A = 0; // status buzzer A
+bool st_bz_B = 0; // status buzzer B
 
-bool led_ON = false;// status led
+bool led_ON = false; // status led
 bool status = false;
 bool status2 = true;
-int seletor = 0; // SELETOR de opções
-int quadro = 1; // tela de inicio
+int seletor = 0;          // SELETOR de opções
+int quadro = 1;           // tela de inicio
 int tx_atualizacao = 100; // tempo de atualização
 
-static volatile uint32_t last_time = 0;// tempo do ultimo evento debounce
+static volatile uint32_t last_time = 0; // tempo do ultimo evento debounce
 
 // VARIAVEIS QUADRO 01
 bool B1 = false;
@@ -276,7 +276,7 @@ void sysIrricacao()
     char str_nv_tanque[5];
     char str_umidadeSolo[5];
     char str_radiacao[5];
-    char str_temp[5]; 
+    char str_temp[5];
     // Converte o inteiro em string
     sprintf(str_nv_tanque, "%d", nv_tanque);
     sprintf(str_temp, "%d", temp);
@@ -309,7 +309,7 @@ void sysIrricacao()
     ssd1306_draw_string(&ssd, str_nv_tanque, 12 + nv_tanque, HEIGHT - 10);
     ssd1306_rect(&ssd, 0, 0, WIDTH, HEIGHT, cor, !cor);
     // FIM LAYOUT-----------------------------------------------------------
-    if (power_sys == false)// se o sistema estiver desligado
+    if (power_sys == false) // se o sistema estiver desligado
     {
 
         apagado(0);
@@ -342,12 +342,12 @@ void sysIrricacao()
             // FIM SIMULADOR-------------------------------------------
         }
     }
-    else// se o sistema estiver ligado
+    else // se o sistema estiver ligado
     {
         amarelo(0);
         piscar(cont, 7);
         sys_auto = B1;
-        if ((irrigacao == false))// se a irrigação estiver desligada
+        if ((irrigacao == false)) // se a irrigação estiver desligada
         {
             if ((cont % 50 == 0) && (irrigacao == false))
             {
@@ -359,20 +359,20 @@ void sysIrricacao()
                 umidadeSolo = umidadeSolo - (temp / 10);
             }
         }
-        if ((sys_auto))// se o sistema estiver em modo automatico
+        if ((sys_auto)) // se o sistema estiver em modo automatico
         {
             if (n_valvulas < 1)
             {
                 vermelho(0);
                 piscar(cont, 5);
             }
-            else// se o sistema estiver em modo manual
+            else // se o sistema estiver em modo manual
             {
                 verde(0);
                 piscar(cont, 7);
 
-                if ((umidadeSolo < umidadeSoloMin)&& (abastecimento == false))
-                
+                if ((umidadeSolo < umidadeSoloMin) && (abastecimento == false))
+
                 {
                     irrigacao = true;
                     abastecimento = false;
@@ -395,20 +395,23 @@ void sysIrricacao()
                         irrigacao = false;
                     }
                     nv_tanque -= n_valvulas;
-                    if (nv_tanque < 0) {
+                    if (nv_tanque < 0)
+                    {
                         nv_tanque = 0;
                     }
-                    if (nv_tanque <= nv_tanqueMin) {// se o tanque estiver vazio
+                    if (nv_tanque <= nv_tanqueMin)
+                    { // se o tanque estiver vazio
                         irrigacao = false;
                         abastecimento = true;
                     }
-                  
                 }
-                if (abastecimento) { // se o tanque estiver vazio
+                if (abastecimento)
+                { // se o tanque estiver vazio
                     azul(0);
                     piscar(cont, 7);
                     nv_tanque++;
-                    if (nv_tanque >= 99) {
+                    if (nv_tanque >= 99)
+                    {
                         nv_tanque = 99;
                         abastecimento = false;
                     }
@@ -447,13 +450,13 @@ void config_sysIrr()
         power_sys = false;
         rosa(0);
         seletor = 18;
-        
-        //conovertendo os valores inteiros em string
+
+        // conovertendo os valores inteiros em string
         sprintf(str_umidadeMax, "%d", umidadeSoloMax);
         sprintf(str_umidadeMin, "%d", umidadeSoloMin);
         sprintf(str_nv_tanqueMin, "%d", nv_tanqueMin);
 
-        //seleciona a posição do seletor
+        // seleciona a posição do seletor
         ssd1306_draw_bitmap(&ssd, seletor + (selecao * 41), 47, baixo);
         ssd1306_draw_bitmap(&ssd, seletor + (selecao * 41), 28, cima);
 
@@ -471,9 +474,9 @@ void config_sysIrr()
         ssd1306_draw_string(&ssd, str_umidadeMin, 14, 38);
         ssd1306_draw_string(&ssd, str_umidadeMax, 55, 38);
         ssd1306_draw_string(&ssd, str_nv_tanqueMin, 96, 38);
-        //finaliza a tela
+        // finaliza a tela
 
-        //verifica analogico eixo X e altera os valores
+        // verifica analogico eixo X e altera os valores
         if (eixo_x_valor < 1000)
         {
             selecao--;
@@ -490,8 +493,8 @@ void config_sysIrr()
                 selecao = 2;
             }
         }
-    
-        //verifica analogico eixo Y e altera os valores
+
+        // verifica analogico eixo Y e altera os valores
         if (eixo_y_valor < 1000)
         {
             if (selecao == 0)
@@ -550,7 +553,7 @@ void config_sysIrr()
                 }
             }
         }
-        //imprime as variaveis para depuração
+        // imprime as variaveis para depuração
         printf("selecao: %d\n", selecao);
         printf("cont: %d\n", cont);
         printf("NvMinimo: %d\n", nv_tanqueMin);
@@ -573,7 +576,7 @@ void config_valvulas()
     // LIMPA O BUFFER
     branco(0);
     power_sys = false;
-    n_valvulas = (v1 + v2 + v3);// numero de valvulas abertas
+    n_valvulas = (v1 + v2 + v3); // numero de valvulas abertas
 
     // LAYOUT-----------------------------------------------------------
     if (quadro == 3)
@@ -603,8 +606,8 @@ void config_valvulas()
         ssd1306_rect(&ssd, 32, 12, 20, 20, cor, v1);
         ssd1306_rect(&ssd, 32, 53, 20, 20, cor, v2);
         ssd1306_rect(&ssd, 32, 94, 20, 20, cor, v3);
-    //-------------------------------------------------------------------
-    //verifica analogico eixo X e altera os valores
+        //-------------------------------------------------------------------
+        // verifica analogico eixo X e altera os valores
         if (eixo_x_valor < 1000)
         {
             setor--;
@@ -621,7 +624,7 @@ void config_valvulas()
                 setor = 2;
             }
         }
-        //verifica o botao BT_A e altera o status das valvulas
+        // verifica o botao BT_A e altera o status das valvulas
         if (gpio_get(BT_A) == 0)
         {
             if (setor == 0)
@@ -639,7 +642,7 @@ void config_valvulas()
 
             n_valvulas = (v1 + v2 + v3);
         }
-        //imprime as variaveis para depuração
+        // imprime as variaveis para depuração
         printf("VARIAVEIS DA TELA\n");
         printf("cont: %d\n", cont);
         printf("valvulas abertas: %d\n", n_valvulas);
