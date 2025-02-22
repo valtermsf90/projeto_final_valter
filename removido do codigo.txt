@@ -411,3 +411,85 @@ void monitor()
     ssd1306_draw_string(&ssd, "B", 98, 53);
     ssd1306_rect(&ssd, 53, 110, 8, 8, cor, !gpio_get(BT_B));
 }
+
+
+
+
+
+    else
+    {
+        amarelo(0);
+
+        piscar(cont, 7);
+
+        sys_auto = B1;
+        if ((irrigacao == false))
+        {
+            if ((cont % 50 == 0) && (irrigacao == false))
+            {
+                temp++;
+                radiacao = radiacao + (temp % 2);
+            }
+            if ((cont % 30 == 0) && (irrigacao == false))
+            {
+                umidadeSolo = umidadeSolo - (temp / 10);
+            }
+        }
+        if (sys_auto == true)
+        {
+            verde(0);
+            piscar(cont, 7);
+            if ((umidadeSolo < umidadeSoloMin));
+            {
+                irrigacao = true;
+                abastecimento = false;
+            }
+            if ((irrigacao == true)&&(umidadeSoloMin))
+            {
+                ciano(0);
+
+                piscar(cont, 7);
+
+                nv_tanque--;
+                if (nv_tanque < nv_tanqueMin)
+                {
+                    irrigacao = false;
+                    abastecimento = true;
+                }
+                umidadeSolo++;
+                if (umidadeSolo >= umidadeSoloMax)
+                {
+                    
+                    irrigacao = false;
+                }
+                if (nv_tanque % 4 == 0)
+                {
+                    temp--;
+                }
+                if (temp < 12)
+                {
+                    temp = 12;
+                }
+                
+                
+                
+            }
+
+            if (abastecimento == true)
+            {
+                azul(0);
+                piscar(cont, 7);
+                nv_tanque++;
+                if (nv_tanque > 99)
+                {
+                    nv_tanque = 99;
+                    abastecimento = false;
+                }
+            }
+            if (umidadeSolo > umidadeSoloMax)
+            {
+                irrigacao = false;
+                // abastecimento = true;
+            }
+        }
+    }

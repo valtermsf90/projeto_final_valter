@@ -34,7 +34,7 @@ bool led_ON = false;
 bool status = false;
 bool status2 = true;
 int seletor = 0;
-int quadro = 3; // tela de inicio
+int quadro = 1; // tela de inicio
 int tx_atualizacao = 100;
 
 static volatile uint32_t last_time = 0;
@@ -47,8 +47,8 @@ int umidadeSoloMax = 80;
 int umidadeSoloMin = 30;
 int umidadeSolo = 32;
 int radiacao = 0;
-int nv_tanque = 54;
-int nv_tanqueMin = 1;
+int nv_tanque = 48;
+int nv_tanqueMin = 10;
 bool abastecimento = false;
 bool irrigacao = false;
 bool sys_auto = false;
@@ -82,7 +82,7 @@ int setor;
 bool v1 = true;
 bool v2 = true;
 bool v3 = true;
-int n_valvulas=0;
+int n_valvulas = 3;
 
 // VARIAVEIS QUADRO 04
 bool A4 = true;
@@ -127,8 +127,24 @@ int main()
         // Atualiza o display
         ssd1306_send_data(&ssd);
 
-        // Exibe os valores dos eixos e perifericos no terminal para depuração
+        printf("VARIAVEIS DA SISTEAMA\n");
+        printf("cont: %d\n", cont);
+        printf("valvulas abertas: %d\n", n_valvulas);
+        printf("NvMinimo: %d\n", nv_tanqueMin);
+        printf("nivel1: %d\n", nv_tanque);
+        printf("Umidade MAX: %d\n", umidadeSoloMax);
+        printf("Umidade MiN: %d\n", umidadeSoloMin);
+        printf("umidade: %d\n", umidadeSolo);
+        printf("temperatura: %d\n", temp);
+        printf("Raios UV: %d\n", radiacao);
+        printf("Irrigação: %d\n", irrigacao);
+        printf("abastecimento: %d\n", abastecimento);
+        printf("sysAuto: %d\n", sys_auto);
+        printf("PowerSys: %d\n", power_sys);
+        printf("status: %d\n", status);
         printf("\n\n");
+        // Exibe os valores dos eixos e perifericos no terminal para depuração
+
         printf("VALORES PARA DEPURAÇÃO\n");
         printf("SINAIS ANALOGICOS\n");
         printf("EIXO X: %d\n", eixo_x_valor);
@@ -190,10 +206,6 @@ void interrupcao(uint gpio, uint32_t events)
             {
                 B1 = !B1;
             }
-            if (quadro == 11)
-            {
-                B11 = !B11;
-            }
             if (quadro == 2)
             {
                 B2 = !B2;
@@ -203,10 +215,6 @@ void interrupcao(uint gpio, uint32_t events)
             {
                 B3 = !B3; // Alterna entre ligado e desligado
                 reset_usb_boot(0, 0);
-            } // Ativa/desativa o PWM
-            if (quadro == 4)
-            {
-                B4 = !B4;
             }
         }
 
@@ -217,11 +225,6 @@ void interrupcao(uint gpio, uint32_t events)
             {
                 A1 = !A1;
             }
-
-            if (quadro == 11)
-            {
-                A11 = !A11;
-            }
             if (quadro == 2)
             {
                 A2 = !A2;
@@ -229,14 +232,7 @@ void interrupcao(uint gpio, uint32_t events)
             if (quadro == 3)
             {
                 A3 = !A3; // Alterna entre ligado e desligado
-
-            } // Ativa/desativa o PWM
-            if (quadro == 4)
-            {
-                A4 = !A4;
-                // Alterna entre ligado e desligado
-
-            } // Ativa/desativa o PWM
+            }
         }
     }
 }
@@ -348,15 +344,8 @@ void sysIrricacao()
     else
     {
         amarelo(0);
-
         piscar(cont, 7);
-
         sys_auto = B1;
-        if (sys_auto == true)
-        {
-            verde(0);
-            piscar(cont, 7);
-        }
         if ((irrigacao == false))
         {
             if ((cont % 50 == 0) && (irrigacao == false))
@@ -369,81 +358,84 @@ void sysIrricacao()
                 umidadeSolo = umidadeSolo - (temp / 10);
             }
         }
-        if (sys_auto == true)
+        if ((sys_auto))
         {
-            if ((umidadeSolo < umidadeSoloMin)&&(n_valvulas>0));
+            if (n_valvulas < 1)
             {
-                irrigacao = true;
-                abastecimento = false;
+                vermelho(0);
+                piscar(cont, 5);
             }
-            if ((irrigacao == true))
+            else
             {
-                ciano(0);
-
+                verde(0);
                 piscar(cont, 7);
 
-                nv_tanque= nv_tanque - n_valvulas;
-                umidadeSolo++;
-
-                if (nv_tanque % 4 == 0)
+                if ((umidadeSolo < umidadeSoloMin)&& (abastecimento == false))
+                
                 {
-                    temp--;
-                }
-                if (temp < 12)
-                {
-                    temp = 12;
-                }
-
-                if (nv_tanque <= nv_tanqueMin)
-                {
-                    irrigacao = false;
-                    abastecimento = true;
-                }
-                if (umidadeSolo == umidadeSoloMax)
-                {
-
-                    irrigacao = false;
-                }
-            }
-
-            if (abastecimento == true)
-            {
-                azul(0);
-                piscar(cont, 7);
-                nv_tanque++;
-                if (nv_tanque > 99)
-                {
-                    nv_tanque = 99;
+                    irrigacao = true;
                     abastecimento = false;
                 }
-            }
-            if (umidadeSolo > umidadeSoloMax)
-            {
-                irrigacao = false;
-                // abastecimento = true;
+                if (irrigacao)
+                {
+                    ciano(0);
+                    piscar(cont, 7);
+                    if (nv_tanque % 4 == 0)
+                    {
+                        temp--;
+                    }
+                    if (temp < 12)
+                    {
+                        temp = 12;
+                    }
+                    umidadeSolo++;
+                    if (umidadeSolo >= umidadeSoloMax)
+                    {
+                        irrigacao = false;
+                    }
+                    nv_tanque -= n_valvulas;
+                    if (nv_tanque < 0) {
+                        nv_tanque = 0;
+                    }
+                    if (nv_tanque <= nv_tanqueMin) {
+                        irrigacao = false;
+                        abastecimento = true;
+                    }
+                  
+                }
+                if (abastecimento) {
+                    azul(0);
+                    piscar(cont, 7);
+                    nv_tanque++;
+                    if (nv_tanque >= 99) {
+                        nv_tanque = 99;
+                        abastecimento = false;
+                    }
+                }
             }
         }
+
+        cont++;
+        if (cont == 99)
+        {
+            cont = 0;
+        }
+        printf("VARIAVEIS DA TELA\n");
+        printf("cont: %d\n", cont);
+        printf("valvulas abertas: %d\n", n_valvulas);
+        printf("NvMinimo: %d\n", nv_tanqueMin);
+        printf("nivel1: %d\n", nv_tanque);
+        printf("Umidade MAX: %d\n", umidadeSoloMax);
+        printf("Umidade MiN: %d\n", umidadeSoloMin);
+        printf("umidade: %d\n", umidadeSolo);
+        printf("temperatura: %d\n", temp);
+        printf("Raios UV: %d\n", radiacao);
+        printf("Irrigação: %d\n", irrigacao);
+        printf("abastecimento: %d\n", abastecimento);
+        printf("sysAuto: %d\n", sys_auto);
+        printf("PowerSys: %d\n", power_sys);
+        printf("status: %d\n", status);
     }
-    cont++;
-    if (cont == 99)
-    {
-        cont = 0;
-    }
-    printf("VARIAVEIS DA TELA\n");
-    printf("cont: %d\n", cont);
-    printf("valvulas abertas: %d\n", n_valvulas);
-    printf("NvMinimo: %d\n", nv_tanqueMin);
-    printf("nivel1: %d\n", nv_tanque);
-    printf("Umidade MAX: %d\n", umidadeSoloMax);
-    printf("Umidade MiN: %d\n", umidadeSoloMin);
-    printf("umidade: %d\n", umidadeSolo);
-    printf("temperatura: %d\n", temp);
-    printf("Raios UV: %d\n", radiacao);
-    printf("Irrigação: %d\n", irrigacao);
-    printf("abastecimento: %d\n", abastecimento);
-    printf("sysAuto: %d\n", sys_auto);
-    printf("PowerSys: %d\n", power_sys);
-    printf("status: %d\n", status);
 }
 
 void config_sysIrr()
@@ -451,6 +443,7 @@ void config_sysIrr()
     if (quadro == 2)
     {
         power_sys = false;
+        rosa(0);
         seletor = 18;
 
         sprintf(str_umidadeMax, "%d", umidadeSoloMax);
@@ -570,71 +563,85 @@ void config_sysIrr()
 // TELA 03 - VALVULAS SETORES
 void config_valvulas()
 {
+    branco(0);
     power_sys = false;
-    n_valvulas=(v1+v2+v3);
-    if(quadro == 3){
-    tx_atualizacao = 100;
-    limpar_o_buffer();
-    desenhar(matriz_3, 24);
-    escrever_no_buffer();
-
-    seletor = 18;
-
-    
-    ssd1306_draw_bitmap(&ssd, seletor + (setor * 41), 21, baixo);
-    ssd1306_draw_bitmap(&ssd, seletor + (setor * 41), 55, cima);
-
-    ssd1306_rect(&ssd, 0, 0, WIDTH, HEIGHT, cor, !cor);
-    ssd1306_rect(&ssd, 10, 0, 127, 11, cor, !cor);
-    ssd1306_vline(&ssd, 41, 10, 63, true);
-    ssd1306_vline(&ssd, 82, 0, 63, true);
-
-    ssd1306_draw_string(&ssd, "VALVULAS", 5, 2);
-    ssd1306_draw_string(&ssd, "ON", 84, 2);
-    ssd1306_draw_string(&ssd, "OFF", 103, 2);
-    ssd1306_draw_string(&ssd, "1", 19, 12);
-    ssd1306_draw_string(&ssd, "2", 63, 12);
-    ssd1306_draw_string(&ssd, "3", 104, 12);
-     
-    ssd1306_rect(&ssd,32,12,20,20,cor,v1);
-    ssd1306_rect(&ssd,32,53,20,20,cor,v2);
-    ssd1306_rect(&ssd,32,94,20,20,cor,v3);
-
-
-    
-    if (eixo_x_valor < 1000)
+    n_valvulas = (v1 + v2 + v3);
+    if (quadro == 3)
     {
-        setor--;
-        if (setor < 0)
+        tx_atualizacao = 100;
+        limpar_o_buffer();
+        desenhar(matriz_3, 24);
+        escrever_no_buffer();
+
+        seletor = 18;
+
+        ssd1306_draw_bitmap(&ssd, seletor + (setor * 41), 21, baixo);
+        ssd1306_draw_bitmap(&ssd, seletor + (setor * 41), 55, cima);
+
+        ssd1306_rect(&ssd, 0, 0, WIDTH, HEIGHT, cor, !cor);
+        ssd1306_rect(&ssd, 10, 0, 127, 11, cor, !cor);
+        ssd1306_vline(&ssd, 41, 10, 63, true);
+        ssd1306_vline(&ssd, 82, 0, 63, true);
+
+        ssd1306_draw_string(&ssd, "VALVULAS", 5, 2);
+        ssd1306_draw_string(&ssd, "ON", 84, 2);
+        ssd1306_draw_string(&ssd, "OFF", 103, 2);
+        ssd1306_draw_string(&ssd, "1", 19, 12);
+        ssd1306_draw_string(&ssd, "2", 63, 12);
+        ssd1306_draw_string(&ssd, "3", 104, 12);
+
+        ssd1306_rect(&ssd, 32, 12, 20, 20, cor, v1);
+        ssd1306_rect(&ssd, 32, 53, 20, 20, cor, v2);
+        ssd1306_rect(&ssd, 32, 94, 20, 20, cor, v3);
+
+        if (eixo_x_valor < 1000)
         {
-            setor = 0;
+            setor--;
+            if (setor < 0)
+            {
+                setor = 0;
+            }
         }
-    }
-    if (eixo_x_valor > 3000)
-    {
-        setor++;
-        if (setor > 2)
+        if (eixo_x_valor > 3000)
         {
-            setor = 2;
+            setor++;
+            if (setor > 2)
+            {
+                setor = 2;
+            }
         }
-    }
-    if(gpio_get(BT_A)==0){
-        if(setor == 0){
-            v1=!v1;
-        }
-        if(setor == 1){
-            v2=!v2;
-        }
-        if(setor == 2){
-            v3=!v3;
+        if (gpio_get(BT_A) == 0)
+        {
+            if (setor == 0)
+            {
+                v1 = !v1;
+            }
+            if (setor == 1)
+            {
+                v2 = !v2;
+            }
+            if (setor == 2)
+            {
+                v3 = !v3;
+            }
+
+            n_valvulas = (v1 + v2 + v3);
         }
 
-        
-        n_valvulas=(v1+v2+v3);
-
-    }
-
-    printf("setor: %d\n", setor);
-    printf("valvulas abertas: %d\n", n_valvulas);
+        printf("VARIAVEIS DA TELA\n");
+        printf("cont: %d\n", cont);
+        printf("valvulas abertas: %d\n", n_valvulas);
+        printf("NvMinimo: %d\n", nv_tanqueMin);
+        printf("nivel1: %d\n", nv_tanque);
+        printf("Umidade MAX: %d\n", umidadeSoloMax);
+        printf("Umidade MiN: %d\n", umidadeSoloMin);
+        printf("umidade: %d\n", umidadeSolo);
+        printf("temperatura: %d\n", temp);
+        printf("Raios UV: %d\n", radiacao);
+        printf("Irrigação: %d\n", irrigacao);
+        printf("abastecimento: %d\n", abastecimento);
+        printf("sysAuto: %d\n", sys_auto);
+        printf("PowerSys: %d\n", power_sys);
+        printf("status: %d\n", status);
     }
 }
