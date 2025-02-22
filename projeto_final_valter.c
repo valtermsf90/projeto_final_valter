@@ -371,7 +371,7 @@ void sysIrricacao()
         }
         if (sys_auto == true)
         {
-            if (umidadeSolo < umidadeSoloMin)
+            if ((umidadeSolo < umidadeSoloMin)&&(n_valvulas>0));
             {
                 irrigacao = true;
                 abastecimento = false;
@@ -382,7 +382,7 @@ void sysIrricacao()
 
                 piscar(cont, 7);
 
-                nv_tanque--;
+                nv_tanque= nv_tanque - n_valvulas;
                 umidadeSolo++;
 
                 if (nv_tanque % 4 == 0)
@@ -431,6 +431,7 @@ void sysIrricacao()
     }
     printf("VARIAVEIS DA TELA\n");
     printf("cont: %d\n", cont);
+    printf("valvulas abertas: %d\n", n_valvulas);
     printf("NvMinimo: %d\n", nv_tanqueMin);
     printf("nivel1: %d\n", nv_tanque);
     printf("Umidade MAX: %d\n", umidadeSoloMax);
@@ -569,6 +570,7 @@ void config_sysIrr()
 // TELA 03 - VALVULAS SETORES
 void config_valvulas()
 {
+    power_sys = false;
     n_valvulas=(v1+v2+v3);
     if(quadro == 3){
     tx_atualizacao = 100;
