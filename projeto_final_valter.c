@@ -23,6 +23,7 @@ void desenhar(char desenho[5][5], int potencia);
 void sysIrricacao();
 void config_sysIrr();
 void config_valvulas();
+void monitor();
 
 // VARIAVEL GLOBAL
 int cont = 0;     // CONTADOR
@@ -186,7 +187,7 @@ void interrupcao(uint gpio, uint32_t events)
             cont = 0;
             quadro++;
 
-            if (quadro > 3)
+            if (quadro > 4)
             {
                 quadro = 1;
                 gpio_init(LED_G);
@@ -209,12 +210,17 @@ void interrupcao(uint gpio, uint32_t events)
             if (quadro == 2)
             {
                 B2 = !B2;
-                reset_usb_boot(0, 0);
+                
             }
             if (quadro == 3)
             {
                 B3 = !B3; // Alterna entre ligado e desligado
-                reset_usb_boot(0, 0);
+                
+            }
+            if (quadro == 4)
+            {
+                B4 = !B4; // Alterna entre ligado e desligado
+                
             }
         }
 
@@ -233,6 +239,10 @@ void interrupcao(uint gpio, uint32_t events)
             {
                 A3 = !A3; // Alterna entre ligado e desligado
             }
+            if (quadro == 4)
+            {
+                A4 = !A4; // Alterna entre ligado e desligado
+            }          
         }
     }
 }
@@ -253,12 +263,11 @@ void tela(int modo)
     {
         config_valvulas();
     }
-    if (modo == 4) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
+    if (modo == 4) // INFORAMÇÕES DOS LEDS E BOTÕES( EIXOS E MIC E BUTTON)
     {
+        monitor();
     }
-    if (modo == 11)
-    {
-    }
+    
 }
 
 void sysIrricacao()
@@ -659,4 +668,83 @@ void config_valvulas()
         printf("PowerSys: %d\n", power_sys);
         printf("status: %d\n", status);
     }
+}
+void monitor()
+{
+
+    limpar_o_buffer();
+    desenhar(matriz_4, 64);
+    escrever_no_buffer();
+    gpio_init(LED_R);
+    config_pwm(LED_B, A4);
+    config_pwm(LED_R, A4);
+    config_pwm_beep(BUZZER_A, B4, 50000000);
+    config_pwm_beep(BUZZER_B, B4, 20000000);
+    gpio_put(LED_G, B4);
+    st_led_G = B4;
+
+    // Controla o brilho do LED vermelho com base no eixo X
+    if ((eixo_x_valor < 1500) || (eixo_x_valor > 2200))
+    {
+        pwm_set_gpio_level(LED_R, eixo_x_valor);
+        st_led_R = A4;
+        pwm_set_gpio_level(BUZZER_A, eixo_x_valor);
+        st_bz_A = B4;
+    }
+    else
+    {
+        pwm_set_gpio_level(LED_R, 0);
+        st_led_R = 0;
+        pwm_set_gpio_level(BUZZER_A, 0);
+        st_bz_A = 0;
+    }
+
+    // Controla o brilho do LED azul com base no eixo Y
+    if ((eixo_y_valor < 1500) || (eixo_y_valor > 2200))
+    {
+        pwm_set_gpio_level(LED_B, eixo_y_valor);
+        st_led_B = A4;
+        pwm_set_gpio_level(BUZZER_B, eixo_y_valor);
+        st_bz_B = B4;
+    }
+    else
+    {
+        pwm_set_gpio_level(LED_B, 0);
+        st_led_B = 0;
+        pwm_set_gpio_level(BUZZER_B, 0);
+        st_bz_B = 0;
+    }
+
+    tx_atualizacao = 200;
+
+    ssd1306_rect(&ssd, 0, 0, 127, 63, cor, !cor);
+
+    ssd1306_draw_string(&ssd, "LEDS", 3, 3);
+    ssd1306_draw_string(&ssd, "R", 63, 3);
+    ssd1306_draw_string(&ssd, "G", 83, 3);
+    ssd1306_draw_string(&ssd, "B", 103, 3);
+    ssd1306_draw_string(&ssd, "STATUS", 3, 13);
+    ssd1306_draw_string(&ssd, "BUZZERS", 3, 23);
+    ssd1306_rect(&ssd, 13, 63, 8, 8, cor, st_led_R);
+    ssd1306_rect(&ssd, 13, 83, 8, 8, cor, gpio_get(LED_G));
+    ssd1306_rect(&ssd, 13, 103, 8, 8, cor, st_led_B);
+    ssd1306_draw_string(&ssd, "A", 63, 23);
+    ssd1306_rect(&ssd, 23, 78, 8, 8, cor, st_bz_A);
+    ssd1306_draw_string(&ssd, "B", 93, 23);
+    ssd1306_rect(&ssd, 23, 108, 8, 8, cor, st_bz_B);
+
+    ssd1306_rect(&ssd, 31, 1, 96, 32, cor, !cor);
+    ssd1306_draw_string(&ssd, "MIC", 3, 33);
+    ssd1306_draw_string(&ssd, str_mic, 63, 33);
+    ssd1306_draw_string(&ssd, "EIXO X", 3, 43);
+    ssd1306_draw_string(&ssd, str_x, 63, 43);
+    ssd1306_draw_string(&ssd, "EIXO Y", 3, 53);
+    ssd1306_draw_string(&ssd, str_y, 63, 53);
+
+    ssd1306_rect(&ssd, 31, 96, 31, 32, cor, !cor);
+    ssd1306_draw_string(&ssd, " BT", 97, 33);
+    ssd1306_draw_string(&ssd, "A", 99, 43);
+    ssd1306_rect(&ssd, 43, 110, 8, 8, cor, !gpio_get(BT_A));
+    ssd1306_draw_string(&ssd, "B", 98, 53);
+    ssd1306_rect(&ssd, 53, 110, 8, 8, cor, !gpio_get(BT_B));
 }
