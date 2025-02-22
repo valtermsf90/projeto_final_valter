@@ -16,7 +16,8 @@ bool st_led_G = false;
 // Função para apagar todos os leds
 void piscar( int cont, int mod){
   if(cont % mod == 0){
-  apagado();}
+  apagado(0);
+}
 }
 void apagado(int tempo)
 {

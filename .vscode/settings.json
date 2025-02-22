@@ -41,6 +41,8 @@
         "stdlib.h": "c",
         "pio.h": "c",
         "timer.h": "c",
-        "pwm.h": "c"
+        "pwm.h": "c",
+        "bootrom.h": "c",
+        "i2c.h": "c"
     }
 }

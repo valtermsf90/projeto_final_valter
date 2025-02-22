@@ -1,6 +1,5 @@
 #include "ssd1306.h"
 #include "font.h"
-
 void ssd1306_init(ssd1306_t *ssd, uint8_t width, uint8_t height, bool external_vcc, uint8_t address, i2c_inst_t *i2c) {
   ssd->width = width;
   ssd->height = height;
@@ -193,12 +192,21 @@ void  ssd1306_draw_string(ssd1306_t *ssd, const char *str, uint8_t x, uint8_t y)
     }
   }
 }
-void ssd1306_draw_bitmap(ssd1306_t *ssd, uint8_t x, uint8_t y, const uint8_t *bitmap, uint8_t width, uint8_t height) {
-  for (uint8_t i = 0; i < height; i++) {
-      for (uint8_t j = 0; j < width; j++) {
-          if (bitmap[i] & (1 << (7 - j))) { // Verifica se o bit está ativo
-              ssd1306_pixel(ssd, x + j, y + i, true);
-          }
-      }
-  }
+void ssd1306_draw_bitmap16(ssd1306_t *ssd, uint8_t x, uint8_t y, const uint8_t *bitmap) {
+  for (uint8_t i = 0; i <16; ++i) {
+    uint8_t line = bitmap[i];
+    for (uint8_t j = 0; j < 16; ++j) {
+        ssd1306_pixel(&ssd, x + i, y + j, line & (1 << j));
+    }
 }
+}
+
+void ssd1306_draw_bitmap(ssd1306_t *ssd, uint8_t x, uint8_t y, const uint8_t *bitmap) {
+  for (uint8_t i = 0; i <8; ++i) {
+    uint8_t line = bitmap[i];
+    for (uint8_t j = 0; j < 8; ++j) {
+        ssd1306_pixel(&ssd, x + i, y + j, line & (1 << j));
+    }
+}
+}
+

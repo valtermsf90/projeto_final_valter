@@ -24,6 +24,7 @@ void sysIrricacao();
 void ECG();
 void olho();
 void monitor();
+void config_sysIrr();
 
 // VARIAVEL GLOBAL
 int cont = 0;
@@ -44,6 +45,8 @@ static volatile uint32_t last_time = 0;
 bool B1 = false;
 bool A1 = true;
 int temp = 18;
+int umidadeSoloMax = 80;
+int umidadeSoloMin = 30;
 int umidadeSolo = 32;
 int radiacao = 0;
 int nv_tanque = 54;
@@ -81,6 +84,11 @@ bool B3 = false;
 bool A4 = true;
 bool B4 = false;
 
+// VARIAVEIS QUADRO 11
+bool A11 = true;
+bool B11 = false;
+char str_umidadeMax[5];
+char str_umidadeMin[5];
 // inicio
 int main()
 {
@@ -152,11 +160,10 @@ void interrupcao(uint gpio, uint32_t events)
         // Verifica se o botão BT_J foi pressionado
         if (gpio == BT_J)
         {
-
             cont = 0;
             quadro++;
 
-            if (quadro > 4)
+            if (quadro > 2)
             {
                 quadro = 1;
                 gpio_init(LED_G);
@@ -175,6 +182,10 @@ void interrupcao(uint gpio, uint32_t events)
             if (quadro == 1)
             {
                 B1 = !B1;
+            }
+            if (quadro == 11)
+            {
+                B11 = !B11;
             }
             if (quadro == 2)
             {
@@ -198,6 +209,11 @@ void interrupcao(uint gpio, uint32_t events)
             if (quadro == 1)
             {
                 A1 = !A1;
+            }
+
+            if (quadro == 11)
+            {
+                A11 = !A11;
             }
             if (quadro == 2)
             {
@@ -227,7 +243,8 @@ void tela(int modo)
 
     if (modo == 2)
     {
-        ECG();
+        // ECG();
+        config_sysIrr();
     }
     if (modo == 3) // OLHOS MOVENDO  ok
     {
@@ -236,6 +253,10 @@ void tela(int modo)
     if (modo == 4) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
     {
         monitor();
+    }
+    if (modo == 11)
+    {
+        config_sysIrr();
     }
 }
 
@@ -246,9 +267,7 @@ void sysIrricacao()
     desenhar(matriz_1, 64);
     escrever_no_buffer();
     // VARIAVEIS
-    const int TEMP_MAX = 40;
-    const int UMID_MIN = 50;
-    const int UV = 70;
+
     power_sys = A1;
     tx_atualizacao = 10;
 
@@ -346,17 +365,20 @@ void sysIrricacao()
         }
         if (sys_auto == true)
         {
-            if (umidadeSolo < 30)
+            if (umidadeSolo < umidadeSoloMin)
             {
                 irrigacao = true;
                 abastecimento = false;
             }
-            if (irrigacao == true)
+            if ((irrigacao == true)&&(nv_tanque>1))
             {
                 ciano(0);
 
                 piscar(cont, 7);
+                
                 nv_tanque--;
+                umidadeSolo++;
+                
                 if (nv_tanque % 4 == 0)
                 {
                     temp--;
@@ -365,22 +387,19 @@ void sysIrricacao()
                 {
                     temp = 12;
                 }
-                umidadeSolo++;
-                if (umidadeSolo > 99)
+                
+                if (nv_tanque ==1)
                 {
-                    umidadeSolo = 99;
+                    irrigacao = false;
+                    abastecimento = true;
                 }
-                abastecimento = false;
-
-                if (nv_tanque < 99)
+                if (umidadeSolo == umidadeSoloMax)
                 {
-                    if ((nv_tanque < 5) && (irrigacao == true))
-                    {
-                        irrigacao = false;
-                        abastecimento = true;
-                    }
+                    
+                    irrigacao = false;
                 }
             }
+
             if (abastecimento == true)
             {
                 azul(0);
@@ -392,7 +411,7 @@ void sysIrricacao()
                     abastecimento = false;
                 }
             }
-            if (umidadeSolo > 80)
+            if (umidadeSolo > umidadeSoloMax)
             {
                 irrigacao = false;
                 // abastecimento = true;
@@ -407,6 +426,8 @@ void sysIrricacao()
     printf("VARIAVEIS DA TELA\n");
     printf("cont: %d\n", cont);
     printf("nivel1: %d\n", nv_tanque);
+    printf("Umidade MAX: %d\n", umidadeSoloMax);
+    printf("Umidade MiN: %d\n", umidadeSoloMin);
     printf("umidade: %d\n", umidadeSolo);
     printf("temperatura: %d\n", temp);
     printf("Raios UV: %d\n", radiacao);
@@ -828,4 +849,80 @@ void monitor()
     ssd1306_rect(&ssd, 43, 110, 8, 8, cor, !gpio_get(BT_A));
     ssd1306_draw_string(&ssd, "B", 98, 53);
     ssd1306_rect(&ssd, 53, 110, 8, 8, cor, !gpio_get(BT_B));
+}
+void config_sysIrr()
+{
+
+    sprintf(str_umidadeMax, "%d", umidadeSoloMax);
+    sprintf(str_umidadeMin, "%d", umidadeSoloMin);
+
+    ssd1306_rect(&ssd, 0, 0, WIDTH, HEIGHT, cor, !cor);
+    ssd1306_rect(&ssd, 10, 0, WIDTH, 11, cor, !cor);
+    ssd1306_vline(&ssd, 41,10, 63, true);
+    ssd1306_vline(&ssd,82,0, 63, true);
+   
+    ssd1306_draw_string(&ssd, "CONFIGURAR", 2, 2);
+    ssd1306_draw_string(&ssd, "BOIA", 92, 2);
+    ssd1306_draw_string(&ssd, "MIN", 6, 12);
+    ssd1306_draw_string(&ssd, "MAX", 50, 12);
+    ssd1306_draw_string(&ssd, "MIN", 94, 12);
+   
+
+    ssd1306_draw_string(&ssd, str_umidadeMin, 14, 38);
+
+    ssd1306_draw_string(&ssd, str_umidadeMax, 55, 38);
+   ssd1306_draw_bitmap(&ssd, 28, 60, cima);
+    ssd1306_draw_bitmap(&ssd, 29, 15, baixo);
+    ssd1306_draw_bitmap(&ssd, 69, 60, cima);
+    ssd1306_draw_bitmap(&ssd, 70, 15, baixo);
+    ssd1306_draw_bitmap(&ssd, 110, 60, cima);
+    ssd1306_draw_bitmap(&ssd, 111, 15, baixo);
+
+    if (eixo_x_valor < 1000)
+    {
+        umidadeSoloMin--;
+        if (umidadeSoloMin < 1)
+        {
+            umidadeSoloMin = 1;
+        }
+    }
+    if (eixo_x_valor > 3000)
+    {
+        umidadeSoloMin++;
+        if (umidadeSoloMin == umidadeSoloMax)
+        {
+            umidadeSoloMin = umidadeSoloMax - 1;
+        }
+    }
+
+    // Controla o brilho do LED azul com base no eixo Y
+    if (eixo_y_valor < 1000)
+    {
+        umidadeSoloMax--;
+        if (umidadeSoloMax == umidadeSoloMin)
+        {
+            umidadeSoloMax = umidadeSoloMin + 1;
+        }
+    }
+    if (eixo_y_valor > 3000)
+    {
+        umidadeSoloMax++;
+        if (umidadeSoloMax > 99)
+        {
+            umidadeSoloMax = 99;
+        }
+    }
+
+    printf("cont: %d\n", cont);
+    printf("nivel1: %d\n", nv_tanque);
+    printf("Umidade MAX: %d\n", umidadeSoloMax);
+    printf("Umidade MiN: %d\n", umidadeSoloMin);
+    printf("umidade: %d\n", umidadeSolo);
+    printf("temperatura: %d\n", temp);
+    printf("Raios UV: %d\n", radiacao);
+    printf("Irrigação: %d\n", irrigacao);
+    printf("abastecimento: %d\n", abastecimento);
+    printf("sysAuto: %d\n", sys_auto);
+    printf("PowerSys    : %d\n", power_sys);
+    printf("status: %d\n", status);
 }
