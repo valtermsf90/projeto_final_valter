@@ -21,8 +21,8 @@ static void interrupcao(uint gpio, uint32_t events);
 void tela(int modo);
 void desenhar(char desenho[5][5], int potencia);
 void sysIrricacao();
-
 void config_sysIrr();
+void config_valvulas();
 
 // VARIAVEL GLOBAL
 int cont = 0;
@@ -34,7 +34,7 @@ bool led_ON = false;
 bool status = false;
 bool status2 = true;
 int seletor = 0;
-int quadro = 1; // tela de inicio
+int quadro = 3; // tela de inicio
 int tx_atualizacao = 100;
 
 static volatile uint32_t last_time = 0;
@@ -78,18 +78,23 @@ char str_temp_C[5];
 // VARIAVEIS QUADRO 03
 bool A3 = true;
 bool B3 = false;
+int setor;
+bool v1 = true;
+bool v2 = true;
+bool v3 = true;
+int n_valvulas=0;
 
 // VARIAVEIS QUADRO 04
 bool A4 = true;
 bool B4 = false;
 
-// VARIAVEIS QUADRO 11
+// VARIAVEIS QUADRO 02
 bool A11 = true;
 bool B11 = false;
 char str_umidadeMax[5];
 char str_umidadeMin[5];
 char str_nv_tanqueMin[5];
-int selecao=0;
+int selecao = 0;
 
 // inicio
 int main()
@@ -165,7 +170,7 @@ void interrupcao(uint gpio, uint32_t events)
             cont = 0;
             quadro++;
 
-            if (quadro > 2)
+            if (quadro > 3)
             {
                 quadro = 1;
                 gpio_init(LED_G);
@@ -197,7 +202,7 @@ void interrupcao(uint gpio, uint32_t events)
             if (quadro == 3)
             {
                 B3 = !B3; // Alterna entre ligado e desligado
-
+                reset_usb_boot(0, 0);
             } // Ativa/desativa o PWM
             if (quadro == 4)
             {
@@ -250,15 +255,13 @@ void tela(int modo)
     }
     if (modo == 3) // OLHOS MOVENDO  ok
     {
-       
+        config_valvulas();
     }
     if (modo == 4) // INFORAMÇÕES DOS LEDS E BOTÕES EIXOS E MIC
     {
-       
     }
     if (modo == 11)
     {
-       
     }
 }
 
@@ -311,7 +314,7 @@ void sysIrricacao()
     // FIM LAYOUT-----------------------------------------------------------
     if (power_sys == false)
     {
-        
+
         apagado(0);
         sys_auto = power_sys;
         irrigacao = false;
@@ -447,14 +450,14 @@ void config_sysIrr()
     if (quadro == 2)
     {
         power_sys = false;
-        seletor=18; 
-        
+        seletor = 18;
+
         sprintf(str_umidadeMax, "%d", umidadeSoloMax);
         sprintf(str_umidadeMin, "%d", umidadeSoloMin);
         sprintf(str_nv_tanqueMin, "%d", nv_tanqueMin);
-        ssd1306_draw_bitmap(&ssd,seletor+(selecao*41) , 47, baixo);
-        ssd1306_draw_bitmap(&ssd,seletor+(selecao*41), 28, cima);
-        
+        ssd1306_draw_bitmap(&ssd, seletor + (selecao * 41), 47, baixo);
+        ssd1306_draw_bitmap(&ssd, seletor + (selecao * 41), 28, cima);
+
         ssd1306_rect(&ssd, 0, 0, 127, 63, cor, !cor);
         ssd1306_rect(&ssd, 10, 0, 127, 11, cor, !cor);
         ssd1306_vline(&ssd, 41, 10, 63, true);
@@ -469,15 +472,14 @@ void config_sysIrr()
         ssd1306_draw_string(&ssd, str_umidadeMin, 14, 38);
         ssd1306_draw_string(&ssd, str_umidadeMax, 55, 38);
         ssd1306_draw_string(&ssd, str_nv_tanqueMin, 96, 38);
-        
+
         if (eixo_x_valor < 1000)
         {
             selecao--;
             if (selecao < 0)
             {
-                selecao = 0;                               
+                selecao = 0;
             }
-            
         }
         if (eixo_x_valor > 3000)
         {
@@ -485,10 +487,7 @@ void config_sysIrr()
             if (selecao > 2)
             {
                 selecao = 2;
-                
             }
-           
-           
         }
 
         // Controla o brilho do LED azul com base no eixo Y
@@ -524,35 +523,33 @@ void config_sysIrr()
 
         if (eixo_y_valor > 3000)
         {
-            
+
             if (selecao == 0)
             {
                 umidadeSoloMin++;
                 if (umidadeSoloMin == umidadeSoloMax)
                 {
                     umidadeSoloMin = umidadeSoloMax - 1;
-                }}
-                if (selecao == 1)
-                {
-                    umidadeSoloMax++;
-                    if (umidadeSoloMax > 99)
-                    {
-                        umidadeSoloMax = 99;
-                    }
                 }
-                if (selecao == 2)
+            }
+            if (selecao == 1)
+            {
+                umidadeSoloMax++;
+                if (umidadeSoloMax > 99)
                 {
-                    nv_tanqueMin++;
-                    if (nv_tanqueMin > 99)
-                    {
-                        nv_tanqueMin = 99;
-                    }
+                    umidadeSoloMax = 99;
                 }
-            
+            }
+            if (selecao == 2)
+            {
+                nv_tanqueMin++;
+                if (nv_tanqueMin > 99)
+                {
+                    nv_tanqueMin = 99;
+                }
+            }
         }
-         
 
-        
         printf("selecao: %d\n", selecao);
         printf("cont: %d\n", cont);
         printf("NvMinimo: %d\n", nv_tanqueMin);
@@ -567,6 +564,75 @@ void config_sysIrr()
         printf("sysAuto: %d\n", sys_auto);
         printf("PowerSys: %d\n", power_sys);
         printf("status: %d\n", status);
-        }
+    }
 }
+// TELA 03 - VALVULAS SETORES
+void config_valvulas()
+{
+    n_valvulas=(v1+v2+v3);
+    if(quadro == 3){
+    tx_atualizacao = 100;
+    limpar_o_buffer();
+    desenhar(matriz_3, 24);
+    escrever_no_buffer();
 
+    seletor = 18;
+
+    
+    ssd1306_draw_bitmap(&ssd, seletor + (setor * 41), 21, baixo);
+    ssd1306_draw_bitmap(&ssd, seletor + (setor * 41), 55, cima);
+
+    ssd1306_rect(&ssd, 0, 0, WIDTH, HEIGHT, cor, !cor);
+    ssd1306_rect(&ssd, 10, 0, 127, 11, cor, !cor);
+    ssd1306_vline(&ssd, 41, 10, 63, true);
+    ssd1306_vline(&ssd, 82, 0, 63, true);
+
+    ssd1306_draw_string(&ssd, "VALVULAS", 5, 2);
+    ssd1306_draw_string(&ssd, "ON", 84, 2);
+    ssd1306_draw_string(&ssd, "OFF", 103, 2);
+    ssd1306_draw_string(&ssd, "1", 19, 12);
+    ssd1306_draw_string(&ssd, "2", 63, 12);
+    ssd1306_draw_string(&ssd, "3", 104, 12);
+     
+    ssd1306_rect(&ssd,32,12,20,20,cor,v1);
+    ssd1306_rect(&ssd,32,53,20,20,cor,v2);
+    ssd1306_rect(&ssd,32,94,20,20,cor,v3);
+
+
+    
+    if (eixo_x_valor < 1000)
+    {
+        setor--;
+        if (setor < 0)
+        {
+            setor = 0;
+        }
+    }
+    if (eixo_x_valor > 3000)
+    {
+        setor++;
+        if (setor > 2)
+        {
+            setor = 2;
+        }
+    }
+    if(gpio_get(BT_A)==0){
+        if(setor == 0){
+            v1=!v1;
+        }
+        if(setor == 1){
+            v2=!v2;
+        }
+        if(setor == 2){
+            v3=!v3;
+        }
+
+        
+        n_valvulas=(v1+v2+v3);
+
+    }
+
+    printf("setor: %d\n", setor);
+    printf("valvulas abertas: %d\n", n_valvulas);
+    }
+}
