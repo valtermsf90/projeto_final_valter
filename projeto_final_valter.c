@@ -438,7 +438,7 @@ void sysIrricacao()
     printf("Irrigação: %d\n", irrigacao);
     printf("abastecimento: %d\n", abastecimento);
     printf("sysAuto: %d\n", sys_auto);
-    printf("PowerSys    : %d\n", power_sys);
+    printf("PowerSys: %d\n", power_sys);
     printf("status: %d\n", status);
 }
 
@@ -446,6 +446,7 @@ void config_sysIrr()
 {
     if (quadro == 2)
     {
+        power_sys = false;
         seletor=18; 
         
         sprintf(str_umidadeMax, "%d", umidadeSoloMax);
@@ -552,7 +553,7 @@ void config_sysIrr()
          
 
         
-        printf("selecao: %d", selecao);
+        printf("selecao: %d\n", selecao);
         printf("cont: %d\n", cont);
         printf("NvMinimo: %d\n", nv_tanqueMin);
         printf("nivel1: %d\n", nv_tanque);
@@ -564,7 +565,7 @@ void config_sysIrr()
         printf("Irrigação: %d\n", irrigacao);
         printf("abastecimento: %d\n", abastecimento);
         printf("sysAuto: %d\n", sys_auto);
-        printf("PowerSys    : %d\n", power_sys);
+        printf("PowerSys: %d\n", power_sys);
         printf("status: %d\n", status);
         }
 }
