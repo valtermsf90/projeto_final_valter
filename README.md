@@ -57,8 +57,7 @@ Exibe o status dos LEDs, buzzers e valores dos sensores (eixo X, eixo Y, microfo
 
 ### **Requisitos:**
 - SDK do Raspberry Pi Pico configurado
-- Compilador GCC para ARM (`arm-none-eabi-gcc`)
-- Ferramenta **CMake**
+
 
 ### **Compilação:**
 ```sh
@@ -66,3 +65,12 @@ mkdir build
 cd build
 cmake ..
 make
+
+## Links
+- **Código-fonte no GitHub**: [https://github.com/valtermsf90/projeto_final_valter/]
+- **Simula
+ção no Wokwi**: [https://wokwi.com/projects/423361855703845889]
+
+
+## Autor
+**Valter Machado Silva Filho**
