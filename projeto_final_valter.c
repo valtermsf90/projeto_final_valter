@@ -169,7 +169,6 @@ int main()
         limpar_tela_serial();
     }
 }
-
 // interrupções e  temporizadores
 void interrupcao(uint gpio, uint32_t events)
 {
@@ -280,7 +279,7 @@ void tela(int modo)
     }
     
 }
-
+// INTERFACE PRINCIPAL
 void sysIrricacao()
 {
     // LIMPA O BUFFER
@@ -465,7 +464,7 @@ void sysIrricacao()
         printf("status: %d\n", status);
     }
 }
-
+// TELA 02 - CONFIGURAR SENSORES
 void config_sysIrr()
 {
     if (quadro == 2)
@@ -684,6 +683,7 @@ void config_valvulas()
         printf("status: %d\n", status);
     }
 }
+// MONTIORA PERIFERICOS
 void monitor()
 {
 
