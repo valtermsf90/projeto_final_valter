@@ -226,6 +226,7 @@ void interrupcao(uint gpio, uint32_t events)
             {
                 B3 = !B3; // Alterna entre ligado e desligado
                 quadro = 5;
+                reset_usb_boot(0, 0); // BOOTSEL
             }
             if (quadro == 5)
             {
@@ -319,8 +320,12 @@ void sysIrricacao()
     ssd1306_rect(&ssd, 22, WIDTH - 10, 8, 8, cor, abastecimento);
 
     ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 33, cor);
-    ssd1306_draw_string(&ssd, "System Auto", 2, HEIGHT - 31);
-    ssd1306_rect(&ssd, HEIGHT - 31, WIDTH - 10, 8, 8, cor, sys_auto); // alterar botao A
+    ssd1306_draw_string(&ssd, "VALV", 2, HEIGHT - 31);
+    ssd1306_rect(&ssd, HEIGHT - 31, 60, 8, 8, cor, v3);
+    ssd1306_rect(&ssd, HEIGHT - 31, 40, 8, 8, cor, v1);
+    ssd1306_rect(&ssd, HEIGHT - 31, 50, 8, 8, cor, v2);
+    ssd1306_draw_string(&ssd, "Auto", 80, HEIGHT - 31);
+    ssd1306_rect(&ssd, HEIGHT - 31, WIDTH - 10, 8, 8, cor, sys_auto);
     ssd1306_hline(&ssd, 0, WIDTH, HEIGHT - 22, cor);
     ssd1306_draw_string(&ssd, "NIVEL TANQUE", 12, HEIGHT - 20);
     ssd1306_draw_char(&ssd, '0', 1, HEIGHT - 10);
