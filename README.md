@@ -1,12 +1,12 @@
-# Sistema de Monitoramento de irrigaçao automatizada e Monittoramento ECG Controle com Matriz de LED e Sensores
+# Sistema de Monitoramento de Irrigação Automatizada e Monitoramento ECG com Controle de Matriz de LED e Sensores
 
 ## 1. Escopo do Projeto
 
 ### Apresentação do Projeto
-Este projeto implementa um **sistema embarcado** utilizando o **Raspberry Pi Pico W** para monitoramento e controle de variáveis ambientais e fisiológicas. Ele inclui sensores para **temperatura, umidade do solo, radiação UV e sinais vitais**, além de controle de **LEDs RGB e matriz de LED** para exibição de informações.
+Este projeto implementa um **sistema embarcado** utilizando o **Raspberry Pi Pico** para monitoramento e controle de variáveis ambientais e fisiológicas. Ele inclui sensores para **temperatura, umidade do solo, radiação UV e sinais vitais**, além de controle de **LEDs RGB e matriz de LED** para exibição de informações. O sistema também permite o controle de irrigação automática com base nas condições do solo e do ambiente.
 
 ### Tecnologias e Bibliotecas Utilizadas
-- **Plataforma:** Raspberry Pi Pico W
+- **Plataforma:** Raspberry Pi Pico
 - **Linguagem:** C
 - **Bibliotecas:**
   - `pico/stdlib.h` (para controle geral)
@@ -18,31 +18,36 @@ Este projeto implementa um **sistema embarcado** utilizando o **Raspberry Pi Pic
   - `led_5x5.c`, `frames.c`, `led_RGB_cores.c`, `funcoes.c`, `pwm.c`, `adc.c`
 
 ### Funcionalidades
-✅ Monitoramento de **temperatura, umidade do solo e radiação UV**
-✅ Exibição de **sinais vitais** (frequência cardíaca, respiração, pressão arterial)
-✅ Controle de **LEDs RGB e buzzer** com base nos sensores
-✅ Exibição gráfica de dados no **display OLED**
-✅ Modo automático de **controle de irrigação e abastecimento de tanque**
+✅ Monitoramento de **temperatura, umidade do solo e radiação UV**  
+✅ Controle de **irrigação automática** com base na umidade do solo  
+✅ Monitoramento de **nível de água no tanque** e abastecimento automático  
+✅ Exibição gráfica de dados no **display OLED**  
+✅ Controle de **LEDs RGB e buzzer** com base nos sensores  
+✅ Modo manual para controle de válvulas de irrigação  
 
 ### Modos de Operação
 
-#### 🔹 **Modo 1 - Monitoramento Ambiental**
-Exibe informações sobre temperatura, umidade do solo e radiação UV. Permite ativação do modo automático para controle da irrigação e abastecimento do tanque.
-- **Botão A:** Liga/Desliga sistema de irrigação.
-- **Botão B:** Alterna o status do sistema para automatica ou manual.
+#### 🔹 **Modo 1 - Monitoramento Ambiental e Irrigação**
+Exibe informações sobre temperatura, umidade do solo, radiação UV e nível de água no tanque. Permite ativação do modo automático para controle da irrigação e abastecimento do tanque.
+- **Botão A:** Liga/Desliga o sistema de irrigação.
+- **Botão B:** Alterna o status do sistema para automático ou manual.
+- **Botão Joystick** Ir para Modo 2 - Configuração do Sistema.
 
-#### 🔹 **Modo 2 - Monitoramento Fisiológico**
-Exibe dados de sinais vitais como **frequência cardíaca, respiração e pressão arterial**, permitindo uma análise visual no display OLED.
-- **Botão A:** Alterna exibição entre diferentes parâmetros.
-- **Botão B:** Entra no modo BOOTSEL.
+#### 🔹 **Modo 2 - Configuração do Sistema**
+Permite configurar parâmetros como umidade mínima e máxima do solo, nível mínimo de água no tanque e outros.
+- **joystick esquerda/direta:** Seleciona o parâmetro a ser ajustado.
+- **joystick cima/baixo:** Aumenta ou diminui o valor do parâmetro selecionado.
+ **Botão Joystick** Ir para Modo 3 - Controle Manual de Válvulas.
 
-#### 🔹 **Modo 3 - Animação Visual**
-Exibe **animações interativas** na matriz de LED, como olhos que seguem a direção do joystick.
-- **Botão A:** Alterna entre expressões faciais.
-- **Botão B:** Liga ou desliga a iluminação dos LEDs.
+#### 🔹 **Modo 3 - Controle Manual de Válvulas**
+Permite o controle manual das válvulas de irrigação.
+- **Botão A:** Alterna o estado da válvula selecionada (ligar/desligar).
+-**Botão B:** Ir para Modo 4 - Monitoramento de Sensores e Atuadores.
+- **joystick esquerda/direta:** Seleciona a válvula (1, 2 ou 3).
+ **Botão Joysttick** Ir para Modo 1.
 
-#### 🔹 **Modo 4 - Diagnóstico do Sistema**
-Apresenta informações sobre **LEDs, botões, sensores analógicos e periféricos conectados**, facilitando a depuração do hardware.
+#### 🔹 **Modo 4 - Monitoramento de Sensores e Atuadores**
+Exibe o status dos LEDs, buzzers e valores dos sensores (eixo X, eixo Y, microfone).
 - **Botão A:** Testa todos os LEDs e buzzers.
 - **Botão B:** Alterna a exibição entre diferentes sensores.
 
@@ -61,44 +66,3 @@ mkdir build
 cd build
 cmake ..
 make
-```
-
-### **Upload para o Pico:**
-1. Conecte o Pico ao PC segurando o botão **BOOTSEL**.
-2. Copie o arquivo **.uf2** gerado para a unidade do Pico.
-
-### **Uso:**
-- O sistema inicia exibindo **informações ambientais**.
-- Os **botões permitem alternar** entre diferentes telas e modos.
-- O sistema pode operar **automaticamente ou manualmente**.
-
----
-
-## 3. Execução do Projeto
-
-### Metodologia
-1. Definição do escopo e funcionalidades.
-2. Pesquisa de componentes e bibliotecas.
-3. Desenvolvimento modular do firmware.
-4. Testes e depuração.
-
-### Testes de Validação
-✅ Teste dos sensores analógicos.
-✅ Exibição correta das informações no display.
-✅ Funcionamento dos LEDs e buzzers.
-
-### Discussão dos Resultados
-Os testes demonstraram que o sistema embarcado funciona conforme esperado, alternando corretamente entre os modos e exibindo informações em tempo real.
-
----
-
-## 4. Referências
-- **Raspberry Pi Pico W Datasheet**: [https://datasheets.raspberrypi.com/picow/pico-w-datasheet.pdf]
-- **Código-fonte no GitHub**: [https://github.com/valtermsf90/projeto_final_valter/]
-- **Simulação no Wokwi**: [https://wokwi.com/projects/423361855703845889]
-
----
-
-## 5. Autor
-**Valtemar Machado Silva Filho**
-
