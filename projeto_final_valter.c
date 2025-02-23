@@ -225,7 +225,7 @@ void interrupcao(uint gpio, uint32_t events)
             {
                 B3 = !B3; // Alterna entre ligado e desligado
                 quadro = 5;
-                reset_usb_boot(0, 0); // BOOTSEL
+                //reset_usb_boot(0, 0); // BOOTSEL pra atualizar codigo
             }
             if (quadro == 5)
             {
@@ -266,7 +266,7 @@ void tela(int modo)
 
     if (modo == 2)
     {
-        // ECG();
+        
         config_sysIrr();
     }
     if (modo == 3) // OLHOS MOVENDO  ok
@@ -470,6 +470,9 @@ void config_sysIrr()
     if (quadro == 2)
     {
         // Limpa o display com a cor inversa
+        limpar_o_buffer();
+        desenhar(matriz_2,64);
+        escrever_no_buffer();
         power_sys = false;
         rosa(0);
         seletor = 18;
@@ -598,6 +601,7 @@ void config_valvulas()
 {
     // LIMPA O BUFFER
     branco(0);
+    tx_atualizacao = 5000;
     power_sys = false;
     n_valvulas = (v1 + v2 + v3); // numero de valvulas abertas
 
