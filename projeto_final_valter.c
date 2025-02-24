@@ -130,8 +130,8 @@ int main()
 
         // Atualiza o display
         ssd1306_send_data(&ssd);
-
-        printf("VARIAVEIS DA SISTEAMA\n");
+        
+        printf("VARIAVEIS DA SISTEMA\n");
         printf("cont: %d\n", cont);
         printf("valvulas abertas: %d\n", n_valvulas);
         printf("NvMinimo: %d\n", nv_tanqueMin);
@@ -170,6 +170,7 @@ int main()
         printf("status_2: %d\n", status2);
         sleep_ms(tx_atualizacao);
         limpar_tela_serial();
+        
     }
 }
 // interrupções e  temporizadores
@@ -450,21 +451,7 @@ void sysIrricacao()
         {
             cont = 0;
         }
-        printf("VARIAVEIS DA TELA\n");
-        printf("cont: %d\n", cont);
-        printf("valvulas abertas: %d\n", n_valvulas);
-        printf("NvMinimo: %d\n", nv_tanqueMin);
-        printf("nivel1: %d\n", nv_tanque);
-        printf("Umidade MAX: %d\n", umidadeSoloMax);
-        printf("Umidade MiN: %d\n", umidadeSoloMin);
-        printf("umidade: %d\n", umidadeSolo);
-        printf("temperatura: %d\n", temp);
-        printf("Raios UV: %d\n", radiacao);
-        printf("Irrigação: %d\n", irrigacao);
-        printf("abastecimento: %d\n", abastecimento);
-        printf("sysAuto: %d\n", sys_auto);
-        printf("PowerSys: %d\n", power_sys);
-        printf("status: %d\n", status);
+       
     }
 }
 // TELA 02 - CONFIGURAR SENSORES
