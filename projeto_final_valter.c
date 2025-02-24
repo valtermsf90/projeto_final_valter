@@ -760,7 +760,7 @@ void monitor()
 
 void bootSysHydro(){
     
-        char texto[] = "SysHydro";
+        char texto[] = "SysHYDRO";
         int x = 32; // Posição inicial do texto no eixo X
         int y = 32; // Posição inicial do texto no eixo Y
         int barra_x = 5; // Posição X da barra
