@@ -76,17 +76,7 @@ char matriz_9[5][5] = {
     {'*', 'G', 'G', 'G', '*'}};
 
 char (*matriz[10])[5] = {matriz_0, matriz_1, matriz_2, matriz_3, matriz_4, matriz_5, matriz_6, matriz_7, matriz_8, matriz_9};
-
-const uint8_t gota[9] = {
-    0x08, //
-    0x18, //     █
-    0x3C, //    ███
-    0x7E, //   █████
-    0xFF, //  ███████
-    0xFF, //  ███████
-    0x7E, //   █████
-    0x3C  //    ███
-};
+;
 const uint8_t planta[] = {
     0x20,0x71, 0xF3 ,0xF7 ,0x77 ,0x5D, 0x08 ,0x1C, 0x3E};
   
@@ -102,3 +92,5 @@ const uint8_t planta[] = {
   const uint8_t cima[] ={
     0xc0, 0xf0, 0xfc,0xff,0xff, 0xfc, 0xf0,0xc0
   };
+  const uint8_t gota[] = {
+    0xc0,0x3c,0x3f,0xff, 0xff,0x3f,0x3c ,0xc0};

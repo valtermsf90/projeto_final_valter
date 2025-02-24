@@ -24,6 +24,7 @@ void sysIrricacao();
 void config_sysIrr();
 void config_valvulas();
 void monitor();
+void bootSysHydro();
 
 // VARIAVEL GLOBAL
 int cont = 0;     // CONTADOR
@@ -36,7 +37,7 @@ bool status = false;
 bool status2 = true;
 int seletor = 0;          // SELETOR de opções
 int quadro = 1;           // tela de inicio
-int tx_atualizacao = 100; // tempo de atualização
+int tx_atualizacao = 1000; // tempo de atualização
 
 static volatile uint32_t last_time = 0; // tempo do ultimo evento debounce
 
@@ -112,6 +113,8 @@ int main()
     inicializacao_maquina_pio(PINO_MATRIZ_LED);
     config_display();
     adc_config();
+    bootSysHydro();
+    
 
     // LOOP
     while (true)
@@ -766,4 +769,54 @@ void monitor()
     ssd1306_rect(&ssd, 43, 110, 8, 8, cor, !gpio_get(BT_A));
     ssd1306_draw_string(&ssd, "B", 98, 53);
     ssd1306_rect(&ssd, 53, 110, 8, 8, cor, !gpio_get(BT_B));
+}
+
+void bootSysHydro(){
+    
+        char texto[] = "SysHydro";
+        int x = 32; // Posição inicial do texto no eixo X
+        int y = 32; // Posição inicial do texto no eixo Y
+        int barra_x = 5; // Posição X da barra
+    int barra_y = 55; // Posição Y da barra
+    int largura_barra = 122; // Largura total da barra
+    int altura_barra = 8; // Altura da barra
+    int progresso = 0; // Progresso da barra
+    
+        // Limpa o display
+        ssd1306_fill(&ssd, 0); // Preenche o display com a cor preta
+        ssd1306_send_data(&ssd);
+    
+        // exibe o texto letra por letra com efeito de fade-in
+        for (int i = 0; i < strlen(texto); i++) {
+            char letra[2];
+            letra[0] = texto[i];
+            letra[1] = '\0'; // Terminador de string
+    
+            // Exibe a letra no display
+            ssd1306_draw_string(&ssd, letra, x, y);
+            ssd1306_send_data(&ssd);   
+            x += 8; // Move a posição X para a próxima letra
+            sleep_ms(150); // Atraso para criar o efeito de animação
+        }
+    
+        // Aguarda um pouco antes de continuar
+        sleep_ms(1000);
+        while (progresso < largura_barra) {
+            // Limpa a área da barra de carregamento
+            ssd1306_rect(&ssd, barra_y, barra_x, largura_barra, altura_barra, 0, 1);
+    
+            // Desenha a barra de carregamento
+            ssd1306_rect(&ssd, barra_y, barra_x, progresso, altura_barra, 1, 1);
+            ssd1306_send_data(&ssd);
+    
+            progresso += 5; // Incrementa o progresso
+            sleep_ms(50);   // Atraso para criar o efeito de animação
+        }
+    
+     
+    
+        // Aguarda um pouco antes de continuar
+        sleep_ms(1000);
+    
+ 
 }
