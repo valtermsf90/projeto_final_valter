@@ -1,4 +1,4 @@
-# Sistema de Monitoramento de Irrigação Automatizada e Monitoramento ECG com Controle de Matriz de LED e Sensores
+# Sistema de Monitoramento de Irrigação Automatizada com Sensores
 
 ## 1. Escopo do Projeto
 
